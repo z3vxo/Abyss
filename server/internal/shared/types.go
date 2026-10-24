@@ -1,5 +1,24 @@
 package shared
 
+import (
+	"crypto/rand"
+	"encoding/binary"
+	"math"
+)
+
+func GenRandomInt32() (int32, error) {
+	var buf [4]byte
+	if _, err := rand.Read(buf[:]); err != nil {
+		return 0, err
+	}
+	const min int64 = 1_500_000_000
+	const max int64 = math.MaxInt32
+
+	n := int64(binary.BigEndian.Uint32(buf[:]) & math.MaxInt32)
+	result := min + n&(max-min+1)
+	return int32(result), nil
+}
+
 type HttpListenerInfo struct {
 	Bind                string   `json:"bind_addr" yaml:"bind_addr"`
 	Port                int      `json:"port" yaml:"port"`
@@ -16,4 +35,15 @@ type NewListenerReq struct {
 	Type     string           `json:"listener_type" yaml:"listener_type"`
 	HttpInfo HttpListenerInfo `json:"http_listener_info" yaml:"http_listener_info"`
 	StartNow bool             `json:"start_now" yaml:"start_now"`
+}
+
+type Arg struct {
+	Type string `json:"data_type"`
+	Arg  any    `json:"arg"`
+}
+
+type NewTaskReq struct {
+	AgentId   int   `json:"agent_id"`
+	CommandId int   `json:"command_id"`
+	Args      []Arg `json:"args"`
 }

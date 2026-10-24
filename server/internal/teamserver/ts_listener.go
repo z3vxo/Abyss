@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi"
 	"github.com/z3vxo/Abyss/internal/db"
 	"github.com/z3vxo/Abyss/internal/listeners"
 	"github.com/z3vxo/Abyss/internal/shared"
@@ -33,6 +34,50 @@ func (ts *TS) HandleNewListener(w http.ResponseWriter, r *http.Request) {
 
 func (ts *TS) HandleListListeners(w http.ResponseWriter, r *http.Request) {
 	ts.Success(w, http.StatusOK, ts.ListenerMgr.List())
+}
+
+func (ts *TS) HandleStopListener(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		ts.Error(w, http.StatusBadRequest, "listener id must be present in url")
+		return
+	}
+
+	if err := ts.ListenerMgr.Stop(id, nil); err != nil {
+		ts.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	ts.Success(w, http.StatusOK, map[string]string{"stopped": id})
+}
+
+func (ts *TS) HandleDeleteListener(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		ts.Error(w, http.StatusBadRequest, "listener id must be present in url")
+		return
+	}
+
+	if err := ts.ListenerMgr.Remove(id); err != nil {
+		ts.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ts.Success(w, http.StatusOK, map[string]string{"deleted": id})
+}
+
+func (ts *TS) HandleStartListener(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		ts.Error(w, http.StatusBadRequest, "listener id must be present in url")
+		return
+	}
+
+	if err := ts.ListenerMgr.Start(id); err != nil {
+		ts.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	ts.Success(w, http.StatusOK, map[string]string{"started": id})
 }
 
 func (ts *TS) CreateListener(req shared.NewListenerReq) (string, error) {

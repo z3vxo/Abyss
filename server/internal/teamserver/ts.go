@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/z3vxo/Abyss/internal/agentserver"
+	"github.com/z3vxo/Abyss/internal/agentserver/httptransport"
 	"github.com/z3vxo/Abyss/internal/auth"
 	"github.com/z3vxo/Abyss/internal/config"
 	"github.com/z3vxo/Abyss/internal/db"
@@ -25,7 +25,7 @@ func New(cfg *config.Config) (*TS, error) {
 		return nil, err
 	}
 
-	agentSrv := &agentserver.AgentServerInfo{DB: database}
+	agentSrv := &httptransport.AgentServerInfo{DB: database}
 
 	return &TS{
 		DB:          database,
@@ -46,8 +46,15 @@ func (ts *TS) Run() error {
 
 		r.Group(func(r chi.Router) {
 			r.Use(ts.Auth.AuthWare())
-			r.Post("/listener/new", ts.HandleNewListener)
+			//-------
+			r.Delete("/listener/delete/{id}", ts.HandleDeleteListener)
 			r.Get("/listener/list", ts.HandleListListeners)
+			r.Post("/listener/new", ts.HandleNewListener)
+			r.Post("/listener/start/{id}", ts.HandleStartListener)
+			r.Patch("/listener/stop/{id}", ts.HandleStopListener)
+			//-------
+			r.Post("/tasks/new", ts.HandleNewTask)
+			r.Post("/tasks/delete", ts.HandleDeleteTask)
 
 		})
 	})

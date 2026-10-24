@@ -63,15 +63,17 @@ var migrations = []string{
 	// Status: 0 == pending, 1 == sent, 2 == completed, 3 == failed
 	`CREATE TABLE IF NOT EXISTS tasks (
 		id          INTEGER PRIMARY KEY AUTOINCREMENT,
-		TaskID      TEXT    NOT NULL UNIQUE,
+		TaskID      INTEGER    NOT NULL UNIQUE,
 		AgentID     INTEGER NOT NULL,
-		Command     TEXT    NOT NULL,
+		CommandCode   INTEGER    NOT NULL,
+		Args        TEXT NOT NULL CHECK (json_valid(Args)),
 		Status      INTEGER NOT NULL,
 		Output      TEXT,
 		CreatedAt   INTEGER NOT NULL,
-		CompletedAt INTEGER,
-		FOREIGN KEY (AgentID) REFERENCES agents (id) ON DELETE CASCADE
+		CompletedAt INTEGER
+
 	);`,
+	//FOREIGN KEY (AgentID) REFERENCES agents (id) ON DELETE CASCADE
 }
 
 func openDB(path string) (*sql.DB, error) {

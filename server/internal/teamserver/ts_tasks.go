@@ -44,3 +44,23 @@ func (ts *TS) HandleDeleteTask(w http.ResponseWriter, r *http.Request) {
 	ts.Success(w, http.StatusOK, map[string]int32{"deleted task": req.TaskID})
 
 }
+
+type ListReq struct {
+	AgentID int32 `json:"agent_id"`
+}
+
+func (ts *TS) HandleListTasks(w http.ResponseWriter, r *http.Request) {
+	var req ListReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		ts.Error(w, http.StatusInternalServerError, "failed decoding json")
+		return
+	}
+
+	Tasks, err := ts.DB.ListTasks(req.AgentID)
+	if err != nil {
+		ts.Error(w, http.StatusInternalServerError, "failed listing tasks")
+		return
+	}
+
+	ts.Success(w, http.StatusOK, Tasks)
+}

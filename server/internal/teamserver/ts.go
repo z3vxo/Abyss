@@ -55,6 +55,12 @@ func (ts *TS) Run() error {
 			//-------
 			r.Post("/tasks/new", ts.HandleNewTask)
 			r.Post("/tasks/delete", ts.HandleDeleteTask)
+			r.Post("/tasks/list", ts.HandleListTasks)
+			//-----
+			r.Post("/files/begin", ts.HandleBeginFile)
+			r.Put("/files/upload/{uuid}", ts.HandleUploadFile)
+			r.Post("/files/list", ts.HandleListFiles)
+			r.Get("/files/download/{uuid}", ts.HandleDownloadFile)
 
 		})
 	})

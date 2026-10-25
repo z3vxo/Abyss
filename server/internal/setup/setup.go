@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/z3vxo/Abyss/internal/db"
+	"github.com/z3vxo/Abyss/server/internal/db"
 	"gopkg.in/yaml.v3"
 )
 

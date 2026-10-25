@@ -43,7 +43,21 @@ type Arg struct {
 }
 
 type NewTaskReq struct {
-	AgentId   int   `json:"agent_id"`
-	CommandId int   `json:"command_id"`
-	Args      []Arg `json:"args"`
+	AgentId int    `json:"agent_id"`
+	Command string `json:"command"`
+	Args    []Arg  `json:"args"`
+}
+
+type ClientRegister struct {
+	AgentId  int32
+	Username string
+	Hostname string
+	Domain   string
+	ProcPath string
+	IsAdmin  int32
+	Arch     int32
+	Pid      int32
+	Tid      int32
+	PPid     int32
+	WinVer   string
 }

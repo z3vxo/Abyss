@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/z3vxo/Abyss/internal/shared"
+	"github.com/z3vxo/Abyss/server/internal/shared"
 )
 
 type Task struct {
@@ -19,6 +19,12 @@ type Task struct {
 type TasksResp struct {
 	Total int    `json:"total"`
 	Tasks []Task `json:"tasks"`
+}
+
+var CommandToCodeMap = map[string]int{
+	"whoami": 0x1,
+	"cat":    0x2,
+	"mv":     0x3,
 }
 
 func (db *DB) ListTasks(id int32) (*TasksResp, error) {
@@ -56,25 +62,28 @@ func (db *DB) ListTasks(id int32) (*TasksResp, error) {
 }
 
 func (db *DB) InsertTask(task shared.NewTaskReq) (int32, error) {
+	code, ok := CommandToCodeMap[task.Command]
+	if !ok {
+		return 0, fmt.Errorf("invalid command name")
+	}
 
 	q := `INSERT INTO tasks(TaskID, AgentID, CommandCode, Args, Status, CreatedAt) VALUES(?,?,?,?,?,?)`
 
 	argsJSON, err := json.Marshal(task.Args)
 	if err != nil {
-		fmt.Println(err)
-		return 0, err
+		return 0, fmt.Errorf("marshal task args: %w", err)
 	}
 
 	TaskID, err := shared.GenRandomInt32()
 	if err != nil {
-		fmt.Println(err)
-		return 0, err
+		return 0, fmt.Errorf("generate task id: %w", err)
 	}
 
-	_, err = db.conn.Exec(q, TaskID, task.AgentId, task.CommandId, argsJSON, "queued", time.Now().Unix())
-	fmt.Println(err)
+	if _, err := db.conn.Exec(q, TaskID, task.AgentId, code, argsJSON, "queued", time.Now().Unix()); err != nil {
+		return 0, fmt.Errorf("insert task: %w", err)
+	}
 
-	return TaskID, err
+	return TaskID, nil
 }
 
 func (db *DB) DeleteTask(id int32) error {

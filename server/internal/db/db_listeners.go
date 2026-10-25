@@ -58,6 +58,23 @@ func insertListenerInfo(tx *sql.Tx, id, kind string, values []string) error {
 	return nil
 }
 
+func (d *DB) DeleteListener(id string) error {
+	res, err := d.conn.Exec(`DELETE FROM listeners WHERE ListenerID = ?`, id)
+	if err != nil {
+		return fmt.Errorf("delete listener %s: %w", id, err)
+	}
+
+	n, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("delete listener %s: %w", id, err)
+	}
+	if n == 0 {
+		return fmt.Errorf("listener %s not found", id)
+	}
+
+	return nil
+}
+
 func (d *DB) UpdateListenerStatus(id, status string) error {
 	if _, err := d.conn.Exec(`UPDATE listeners SET Status = ? WHERE ListenerID = ?`, status, id); err != nil {
 		return fmt.Errorf("update listener %s status: %w", id, err)

@@ -7,9 +7,9 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/z3vxo/Abyss/internal/db"
-	"github.com/z3vxo/Abyss/internal/listeners"
-	"github.com/z3vxo/Abyss/internal/shared"
+	"github.com/z3vxo/Abyss/server/internal/db"
+	"github.com/z3vxo/Abyss/server/internal/listeners"
+	"github.com/z3vxo/Abyss/server/internal/shared"
 )
 
 // only http(s) for now
@@ -44,6 +44,11 @@ func (ts *TS) HandleStopListener(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := ts.ListenerMgr.Stop(id, nil); err != nil {
+		ts.DB.UpdateListenerStatus(id, string(listeners.StatusError))
+		ts.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if err := ts.DB.UpdateListenerStatus(id, string(listeners.StatusStopped)); err != nil {
 		ts.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -61,6 +66,10 @@ func (ts *TS) HandleDeleteListener(w http.ResponseWriter, r *http.Request) {
 		ts.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	if err := ts.DB.DeleteListener(id); err != nil {
+		ts.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 
 	ts.Success(w, http.StatusOK, map[string]string{"deleted": id})
 }
@@ -73,6 +82,11 @@ func (ts *TS) HandleStartListener(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := ts.ListenerMgr.Start(id); err != nil {
+		ts.DB.UpdateListenerStatus(id, string(listeners.StatusError))
+		ts.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if err := ts.DB.UpdateListenerStatus(id, string(listeners.StatusRunning)); err != nil {
 		ts.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -119,7 +133,7 @@ func (ts *TS) CreateListener(req shared.NewListenerReq) (string, error) {
 }
 
 func (ts *TS) startListeners() error {
-	records, err := ts.DB.GetListenersToStart()
+	records, err := ts.DB.ListListeners()
 	if err != nil {
 		return err
 	}
@@ -144,6 +158,10 @@ func (ts *TS) startListeners() error {
 		if err := ts.ListenerMgr.Restore(req, record.ID); err != nil {
 			ts.DB.UpdateListenerStatus(record.ID, string(listeners.StatusError))
 			errs = append(errs, fmt.Errorf("restore listener %q: %w", record.ID, err))
+			continue
+		}
+
+		if record.Status != string(listeners.StatusRunning) && record.Status != string(listeners.StatusStarting) {
 			continue
 		}
 

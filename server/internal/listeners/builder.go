@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/z3vxo/Abyss/internal/shared"
+	"github.com/z3vxo/Abyss/server/internal/shared"
 )
 
 func BuildTLS(info shared.HttpListenerInfo, typ ListenerType) (*tls.Config, error) {

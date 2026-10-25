@@ -17,8 +17,13 @@ var migrations = []string{
 		LastSeen  INTEGER NOT NULL,
 		CreatedAt INTEGER NOT NULL,
 		IsAdmin   INTEGER NOT NULL,
+		PID       INTEGER NOT NULL,
+		TID       INTEGER NOT NULL,
+		PPID      INTEGER NOT NULL,
+		Arch      INTEGER NOT NULL,
 		Username  TEXT    NOT NULL,
 		Hostname  TEXT    NOT NULL,
+		ProcPath  TEXT    NOT NULL,
 		Domain    TEXT    NOT NULL,
 		WinVer    TEXT    NOT NULL,
 		IpAddr    TEXT    NOT NULL

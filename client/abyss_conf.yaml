@@ -1,0 +1,10 @@
+connection:
+    host: "http://127.0.0.1"       # host to connect too, protocol required
+    port: 8080                     # port to connect too
+    username: "abyss"
+    password: "abyss-operator"        # pass to use for connection
+
+
+logging:
+   level: "info" # logging level
+   logfile: "./logs/abyss.log" # file to log too

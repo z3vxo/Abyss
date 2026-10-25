@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/z3vxo/Abyss/internal/agentserver/httptransport"
-	"github.com/z3vxo/Abyss/internal/auth"
-	"github.com/z3vxo/Abyss/internal/config"
-	"github.com/z3vxo/Abyss/internal/db"
-	"github.com/z3vxo/Abyss/internal/listeners"
+	"github.com/z3vxo/Abyss/server/internal/agentserver/httptransport"
+	"github.com/z3vxo/Abyss/server/internal/auth"
+	"github.com/z3vxo/Abyss/server/internal/config"
+	"github.com/z3vxo/Abyss/server/internal/db"
+	"github.com/z3vxo/Abyss/server/internal/listeners"
 )
 
 type TS struct {

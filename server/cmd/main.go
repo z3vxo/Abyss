@@ -4,9 +4,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/z3vxo/Abyss/internal/config"
-	"github.com/z3vxo/Abyss/internal/setup"
-	"github.com/z3vxo/Abyss/internal/teamserver"
+	"github.com/z3vxo/Abyss/server/internal/config"
+	"github.com/z3vxo/Abyss/server/internal/setup"
+	"github.com/z3vxo/Abyss/server/internal/teamserver"
 )
 
 func main() {

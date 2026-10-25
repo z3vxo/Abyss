@@ -1,4 +1,4 @@
-module github.com/z3vxo/Abyss
+module github.com/z3vxo/Abyss/server
 
 go 1.25.8
 

@@ -11,7 +11,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/z3vxo/Abyss/internal/shared"
+	"github.com/z3vxo/Abyss/server/internal/shared"
 )
 
 type Status string

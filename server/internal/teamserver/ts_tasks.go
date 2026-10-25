@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/z3vxo/Abyss/internal/shared"
+	"github.com/z3vxo/Abyss/server/internal/shared"
 )
 
 func (ts *TS) HandleNewTask(w http.ResponseWriter, r *http.Request) {
@@ -16,7 +16,7 @@ func (ts *TS) HandleNewTask(w http.ResponseWriter, r *http.Request) {
 
 	id, err := ts.DB.InsertTask(req)
 	if err != nil {
-		ts.Error(w, http.StatusInternalServerError, "failed inserting task")
+		ts.Error(w, http.StatusBadRequest, err.Error())
 		return
 	}
 

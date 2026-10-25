@@ -1,0 +1,27 @@
+# Example for http(s) agent profile
+
+c2:
+   # Use HTTP or HTTPs
+   useSSL: false
+   # Trust self signed headers or not
+   TrustSelfSignedCerts: true
+
+   # Callback hosts the agent will use, agent uses them in order round robin, for example for the config below
+   #    try example.com -> if success done -> else try example2.com
+   callbacks:
+      - "example.com:8080"
+      - "example2.com:443"
+
+   # URI Paths the agent will use, ensure matchs your listener profile, random path is chosen each beacon cycle
+   URIS:
+      - "/api/v1/auth"
+      - "/cdn/rum-cgi"
+   # Headers the agent will include in every request
+   Headers:
+      User-Agent: "Windows-test"
+      Content-Type: "application/json"
+
+
+injection:
+  spawn-to-x64: "C:\\Windows\\system32\\calc.exe"
+  

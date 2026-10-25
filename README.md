@@ -3,4 +3,4 @@
 
 > **Work in Progress** — not ready for production use.
 
-Abyss is a command-and-control framework written in Go and c++. It consists of a teamserver, an operator CLI client, and a Windows 
+Abyss is a command-and-control framework written in Go and c++. It consists of a teamserver, an operator CLI client, and a Windows agent written in c++

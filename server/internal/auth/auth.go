@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/z3vxo/Abyss/internal/config"
+	"github.com/z3vxo/Abyss/server/internal/config"
 )
 
 type Auth struct {

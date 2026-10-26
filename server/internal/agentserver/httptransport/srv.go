@@ -9,11 +9,12 @@ import (
 	"net/http"
 
 	"github.com/z3vxo/Abyss/server/internal/db"
+	"github.com/z3vxo/Abyss/server/internal/ws"
 )
 
 type AgentServerInfo struct {
-	DB   *db.DB
-	Host string
+	DB *db.DB
+	WS *ws.WS
 }
 
 const (
@@ -21,12 +22,6 @@ const (
 )
 
 func (srv *AgentServerInfo) HandlePost(w http.ResponseWriter, r *http.Request) {
-	host := r.Header.Get("Host")
-	if host != srv.Host {
-		w.WriteHeader(http.StatusNotAcceptable)
-		return
-	}
-
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -38,6 +33,17 @@ func (srv *AgentServerInfo) HandlePost(w http.ResponseWriter, r *http.Request) {
 	if err := binary.Read(reader, binary.LittleEndian, &cmdType); err != nil {
 		fmt.Println("Failed reading code")
 		http.Error(w, "", http.StatusNotFound)
+		return
+	}
+
+	switch cmdType {
+	case CMD_TYPE_REGISTER:
+		if err := srv.HandleRegister(reader); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	default:
+		http.Error(w, "unknown command type", http.StatusBadRequest)
 		return
 	}
 

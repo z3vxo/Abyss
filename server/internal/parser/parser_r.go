@@ -74,6 +74,7 @@ func ParseRegister(r *bytes.Reader) (shared.ClientRegister, error) {
 	major := rd.Read4()
 	build := rd.Read4()
 	client.WinVer = MinMajorBuildToString(minor, major, build)
+	client.AgentName = "test-gen-soon-after-test"
 
 	if rd.err != nil {
 		return shared.ClientRegister{}, rd.err

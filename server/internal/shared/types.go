@@ -49,15 +49,16 @@ type NewTaskReq struct {
 }
 
 type ClientRegister struct {
-	AgentId  int32
-	Username string
-	Hostname string
-	Domain   string
-	ProcPath string
-	IsAdmin  int32
-	Arch     int32
-	Pid      int32
-	Tid      int32
-	PPid     int32
-	WinVer   string
+	AgentId   int32
+	AgentName string
+	Username  string
+	Hostname  string
+	Domain    string
+	ProcPath  string
+	IsAdmin   int32
+	Arch      int32
+	Pid       int32
+	Tid       int32
+	PPid      int32
+	WinVer    string
 }

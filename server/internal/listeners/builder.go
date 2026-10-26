@@ -13,6 +13,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi"
@@ -58,15 +59,26 @@ func BuildServer(info shared.HttpListenerInfo, tlsCfg *tls.Config, agent AgentHa
 	if agent == nil {
 		return nil, fmt.Errorf("agent handler is required")
 	}
+	if info.Hostname == "" {
+		return nil, fmt.Errorf("listener hostname is required")
+	}
 
 	paths, err := normalizePaths(info.HttpPaths)
 	if err != nil {
 		return nil, err
 	}
 
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		if !hostMatches(r.Host, info.Hostname) {
+			http.NotFound(w, r)
+			return
+		}
+		agent.HandlePost(w, r)
+	}
+
 	r := chi.NewRouter()
 	for _, route := range paths {
-		r.Post(route, agent.HandlePost)
+		r.Post(route, handler)
 	}
 
 	return &http.Server{
@@ -77,6 +89,21 @@ func BuildServer(info shared.HttpListenerInfo, tlsCfg *tls.Config, agent AgentHa
 		IdleTimeout:       60 * time.Second,
 		MaxHeaderBytes:    1 << 20,
 	}, nil
+}
+
+func hostMatches(requestHost, expected string) bool {
+	expected = hostOnly(expected)
+	if expected == "" {
+		return false
+	}
+	return strings.EqualFold(hostOnly(requestHost), expected)
+}
+
+func hostOnly(hostport string) string {
+	if host, _, err := net.SplitHostPort(hostport); err == nil {
+		return host
+	}
+	return strings.Trim(hostport, "[]")
 }
 
 func normalizePaths(paths []string) ([]string, error) {

@@ -3,6 +3,7 @@ module github.com/z3vxo/Abyss/server
 go 1.25.8
 
 require (
+	github.com/coder/websocket v1.8.15
 	github.com/go-chi/chi v1.5.5
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0

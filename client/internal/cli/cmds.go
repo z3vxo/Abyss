@@ -6,6 +6,9 @@ import (
 )
 
 func (c *CLI) HandleWhoami(args []string) error {
+	if !c.IsUsingAgent() {
+		return nil
+	}
 
 	var req NewTaskReq
 	req.AgentId = c.AgentInUse
@@ -23,6 +26,9 @@ func (c *CLI) HandleWhoami(args []string) error {
 }
 
 func (c *CLI) HandleMv(args []string) error {
+	if !c.IsUsingAgent() {
+		return nil
+	}
 	if len(args) != 2 {
 		return fmt.Errorf("usage: mv <src> <dst>")
 	}

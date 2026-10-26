@@ -12,6 +12,19 @@ var ErrNoCommand = errors.New("no command provided")
 
 type CommandFunc func(args []string) error
 
+func (c *CLI) HandleAgents(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("must provide a subcommand: list")
+	}
+
+	switch args[0] {
+	case "list":
+		return c.ListAgents(args[1:])
+	default:
+		return fmt.Errorf("unknown agents subcommand %q", args[0])
+	}
+}
+
 func (c *CLI) HandleListeners(args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("must provide a subcommand: new, start, stop, delete")

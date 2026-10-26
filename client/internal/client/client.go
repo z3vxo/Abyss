@@ -16,11 +16,14 @@ import (
 	"time"
 
 	"github.com/z3vxo/Abyss/client/internal/config"
+	"github.com/z3vxo/Abyss/client/internal/ws"
 )
 
 type Client struct {
 	base *url.URL
 	http *http.Client
+
+	Events chan ws.Event
 
 	mu      sync.RWMutex
 	access  string
@@ -29,7 +32,7 @@ type Client struct {
 
 type tokens struct {
 	Access  string `json:"access"`
-	Refresh string `json:"refesh"` // matches the server's current JSON tag
+	Refresh string `json:"refresh"`
 }
 
 type loginReq struct {
@@ -58,8 +61,9 @@ func New(cfg *config.Config) (*Client, error) {
 	}
 
 	c := &Client{
-		base: base,
-		http: &http.Client{Timeout: 15 * time.Second},
+		base:   base,
+		http:   &http.Client{Timeout: 15 * time.Second},
+		Events: make(chan ws.Event, 128),
 	}
 
 	for attempt := 0; attempt <= loginRetries; attempt++ {
@@ -70,8 +74,11 @@ func New(cfg *config.Config) (*Client, error) {
 
 		err := c.Login(context.Background(), cfg.ConnectionCfg.Username, cfg.ConnectionCfg.Password)
 		if err == nil {
-			fmt.Println("[*] Connected to teamserver")
-			return c, nil
+			err = c.ConnectWS(context.Background())
+			if err == nil {
+				fmt.Println("[*] Connected to teamserver")
+				return c, nil
+			}
 		}
 
 		var apiErr *APIError
@@ -169,6 +176,47 @@ func (c *Client) Login(ctx context.Context, user, pass string) error {
 	return nil
 }
 
+func (c *Client) ConnectWS(ctx context.Context) error {
+	c.mu.RLock()
+	token := c.access
+	c.mu.RUnlock()
+	if token == "" {
+		return fmt.Errorf("connect websocket: no access token")
+	}
+
+	u := *c.base
+	switch u.Scheme {
+	case "http":
+		u.Scheme = "ws"
+	case "https":
+		u.Scheme = "wss"
+	default:
+		return fmt.Errorf("connect websocket: unsupported scheme %q", u.Scheme)
+	}
+	u.Path = strings.TrimSuffix(u.Path, "/") + "/rest/ws/connect"
+	q := u.Query()
+	q.Set("token", token)
+	u.RawQuery = q.Encode()
+
+	dialCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+
+	conn, err := ws.Dial(dialCtx, u.String())
+	if err != nil {
+		return fmt.Errorf("connect websocket: %w", err)
+	}
+
+	go c.readWS(conn)
+	return nil
+}
+
+func (c *Client) readWS(conn *ws.Conn) {
+	defer close(c.Events)
+	_ = conn.ReadLoop(context.Background(), func(event ws.Event) {
+		c.Events <- event
+	})
+}
+
 func (c *Client) do(ctx context.Context, method, path string, in, out any) error {
 	var body io.Reader
 	if in != nil {
@@ -241,4 +289,35 @@ func buildBaseURL(host string, port int) (*url.URL, error) {
 	}
 
 	return u, nil
+}
+
+type AgentsResp struct {
+	Total  int     `json:"total"`
+	Agents []Agent `json:"agent"`
+}
+
+type Agent struct {
+	AgentId   int32  `json:"agent_id"`
+	AgentName string `json:"agent_name"`
+	Username  string `json:"username"`
+	Hostname  string `json:"hostname"`
+	Domain    string `json:"domain"`
+	ProcPath  string `json:"proc_path"`
+	WinVer    string `json:"winver"`
+	PID       int    `json:"pid"`
+	TID       int    `json:"tid"`
+	PPID      int    `json:"ppid"`
+	Arch      int    `json:"arch"`
+	IsAdmin   int    `json:"is_admin"`
+	LastSeen  int    `json:"last_seen"`
+	CreatedAt int    `json:"created_at"`
+}
+
+func (c *Client) ListAgents(ctx context.Context) (AgentsResp, error) {
+	var out AgentsResp
+	if err := c.do(ctx, http.MethodGet, "/rest/agents/list", nil, &out); err != nil {
+		return AgentsResp{}, fmt.Errorf("list agents: %w", err)
+	}
+
+	return out, nil
 }

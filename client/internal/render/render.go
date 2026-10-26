@@ -5,6 +5,32 @@ import (
 	"github.com/z3vxo/Abyss/client/internal/client"
 )
 
+func RenderAgents(agents client.AgentsResp) string {
+	if len(agents.Agents) == 0 {
+		return "No agents."
+	}
+
+	w := table.NewWriter()
+	w.SetStyle(table.StyleRounded)
+	w.AppendHeader(table.Row{"#", "NAME", "HOST", "USER", "DOMAIN", "OS", "ARCH", "ADMIN", "PID"})
+
+	for i, agent := range agents.Agents {
+		w.AppendRow(table.Row{
+			i + 1,
+			agent.AgentName,
+			agent.Hostname,
+			agent.Username,
+			agent.Domain,
+			agent.WinVer,
+			agent.Arch,
+			agent.IsAdmin,
+			agent.PID,
+		})
+	}
+
+	return w.Render()
+}
+
 func Listeners(listeners []client.ListenerInfo) string {
 	if len(listeners) == 0 {
 		return "No listeners."

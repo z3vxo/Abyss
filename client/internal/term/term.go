@@ -63,15 +63,23 @@ func (c *Console) Printf(format string, args ...any) {
 }
 
 func (c *Console) Errorf(format string, args ...any) {
-	c.printLine(c.colorize(colorRed, "[!]") + " " + fmt.Sprintf(format, args...))
+	c.printTag(colorRed, "[!]", format, args...)
 }
 
 func (c *Console) Warnf(format string, args ...any) {
-	c.printLine(c.colorize(colorYellow, "[~] "+fmt.Sprintf(format, args...)))
+	c.printTag(colorYellow, "[~]", format, args...)
 }
 
 func (c *Console) Infof(format string, args ...any) {
-	c.printLine(c.colorize(colorGreen, "[*] "+fmt.Sprintf(format, args...)))
+	c.printTag(colorGreen, "[*]", format, args...)
+}
+
+func (c *Console) Successf(format string, args ...any) {
+	c.printTag(colorGreen, "[+]", format, args...)
+}
+
+func (c *Console) printTag(color, tag, format string, args ...any) {
+	c.printLine(c.colorize(color, tag) + " " + fmt.Sprintf(format, args...))
 }
 
 func (c *Console) printLine(line string) {

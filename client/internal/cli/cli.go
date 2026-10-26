@@ -15,6 +15,7 @@ type CLI struct {
 	term       *term.Console
 	api        *client.Client
 	listeners  []client.ListenerInfo
+	agents     []client.Agent
 	Commands   map[string]CommandFunc
 	AgentInUse int
 }
@@ -42,8 +43,10 @@ func New(configPath string, debug bool) (*CLI, error) {
 	}
 
 	c.Commands = map[string]CommandFunc{
+		"agents":    c.HandleAgents,
 		"listeners": c.HandleListeners,
 		"mv":        c.HandleMv,
+		"use":       c.UseAgent,
 		"whoami":    c.HandleWhoami,
 	}
 
@@ -52,6 +55,8 @@ func New(configPath string, debug bool) (*CLI, error) {
 
 func (c *CLI) Run() error {
 	defer c.term.Close()
+
+	go c.handleEvents()
 
 	for {
 		line, err := c.term.Readline()

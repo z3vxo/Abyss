@@ -51,7 +51,7 @@ func parseTTL(value string, fallback time.Duration) time.Duration {
 
 type Tokens struct {
 	AccessToken  string `json:"access"`
-	RefreshToken string `json:"refesh"`
+	RefreshToken string `json:"refresh"`
 }
 
 func (auth *Auth) Generate(user string) (Tokens, error) {

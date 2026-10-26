@@ -10,6 +10,7 @@ import (
 	"github.com/z3vxo/Abyss/server/internal/config"
 	"github.com/z3vxo/Abyss/server/internal/db"
 	"github.com/z3vxo/Abyss/server/internal/listeners"
+	"github.com/z3vxo/Abyss/server/internal/ws"
 )
 
 type TS struct {
@@ -17,6 +18,7 @@ type TS struct {
 	Cfg         *config.Config
 	Auth        *auth.Auth
 	ListenerMgr *listeners.Listeners
+	WS          *ws.WS
 }
 
 func New(cfg *config.Config) (*TS, error) {
@@ -25,13 +27,15 @@ func New(cfg *config.Config) (*TS, error) {
 		return nil, err
 	}
 
-	agentSrv := &httptransport.AgentServerInfo{DB: database}
+	hub := ws.New()
+	agentSrv := &httptransport.AgentServerInfo{DB: database, WS: hub}
 
 	return &TS{
 		DB:          database,
 		Cfg:         cfg,
 		Auth:        auth.New(cfg),
 		ListenerMgr: listeners.Create(agentSrv),
+		WS:          hub,
 	}, nil
 
 }
@@ -42,7 +46,7 @@ func (ts *TS) Run() error {
 	r.Route("/rest", func(r chi.Router) {
 		r.Post("/auth/login", ts.HandleAuth)
 		r.Post("/auth/refresh", ts.HandleRefresh)
-		//r.Get("/ws/connect", ts.HandleWS)
+		r.Get("/ws/connect", ts.HandleWS)
 
 		r.Group(func(r chi.Router) {
 			r.Use(ts.Auth.AuthWare())
@@ -52,6 +56,8 @@ func (ts *TS) Run() error {
 			r.Post("/listener/new", ts.HandleNewListener)
 			r.Post("/listener/start/{id}", ts.HandleStartListener)
 			r.Patch("/listener/stop/{id}", ts.HandleStopListener)
+			//-------
+			r.Get("/agents/list", ts.HandleListAgents)
 			//-------
 			r.Post("/tasks/new", ts.HandleNewTask)
 			r.Post("/tasks/delete", ts.HandleDeleteTask)

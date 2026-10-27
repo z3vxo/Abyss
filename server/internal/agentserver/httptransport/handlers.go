@@ -61,3 +61,13 @@ func (srv *AgentServerInfo) HandleRegister(r *bytes.Reader) error {
 
 	return nil
 }
+
+func (srv *AgentServerInfo) HandleOutput(r *bytes.Reader) error {
+
+	_, err := parser.ParseOutput(r)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -3,6 +3,7 @@ package parser
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"io"
 
 	"github.com/z3vxo/Abyss/server/internal/shared"
@@ -82,4 +83,102 @@ func ParseRegister(r *bytes.Reader) (shared.ClientRegister, error) {
 
 	return client, nil
 
+}
+
+type OutputInfo struct {
+	Total   int32
+	AgentId int32
+	Data    []Output
+}
+
+type Output struct {
+	TaskId     int32
+	OutputData string
+}
+
+/*
+ 	[AgentId] 4 bytes
+  	[Total]   4 Bytes
+   	for each task [
+    	[TaskId] 	  	  4 Bytes
+     	[Output-Type] 	  4 Bytes // 0xaa == raw(e.g ps or cmd output), 0xcc == needs parsing(e.g ls output)
+      	[per output data] N bytes
+    ]
+
+ *
+*/
+
+var (
+	OUTPUT_RAW        = int32(0xaa)
+	OUTPUT_NEED_PARSE = int32(0xcc)
+)
+
+type Handler func(r *Reader) error
+
+var TypeToHandler = map[int32]Handler{
+	0xbf: ParseLs,
+}
+
+func ParseLs(rd *Reader) error {
+	return nil
+}
+
+func ParseOutput(r *bytes.Reader) (*OutputInfo, error) {
+
+	rd := &Reader{r: r}
+	info := &OutputInfo{
+		AgentId: rd.Read4(),
+		Total:   rd.Read4(),
+	}
+	if rd.err != nil {
+		return nil, rd.err
+	}
+	if info.Total < 0 || int64(info.Total) > int64(r.Len()/8) {
+		return nil, fmt.Errorf("invalid output count %d", info.Total)
+	}
+
+	info.Data = make([]Output, 0, info.Total)
+	for range info.Total {
+		var o Output
+		o.TaskId = rd.Read4()
+		outputType := rd.Read4()
+		if rd.err != nil {
+			return nil, rd.err
+		}
+
+		switch outputType {
+		case OUTPUT_RAW:
+			n := rd.Read4()
+			if rd.err != nil {
+				return nil, rd.err
+			}
+			if n < 0 || int64(n) > int64(r.Len()) {
+				return nil, fmt.Errorf("invalid output length %d (remaining %d)", n, r.Len())
+			}
+			o.OutputData = rd.ReadString(n)
+
+		case OUTPUT_NEED_PARSE:
+			parserType := rd.Read4()
+			if rd.err != nil {
+				return nil, rd.err
+			}
+			parser, ok := TypeToHandler[parserType]
+			if !ok {
+				return nil, fmt.Errorf("unknown output parser %#x", parserType)
+			}
+			if err := parser(rd); err != nil {
+				return nil, fmt.Errorf("parse output %#x: %w", parserType, err)
+			}
+
+		default:
+			return nil, fmt.Errorf("unknown output type %#x", outputType)
+		}
+
+		if rd.err != nil {
+			return nil, rd.err
+		}
+		info.Data = append(info.Data, o)
+	}
+
+	return info, nil
 }

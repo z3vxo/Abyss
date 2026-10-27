@@ -1,1 +1,9 @@
-// #include "includes/core/core.h"
+#include "includes/core/core.h"
+
+
+
+void main() {
+	HollowMain();
+
+	
+}

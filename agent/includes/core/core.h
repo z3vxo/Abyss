@@ -16,6 +16,10 @@ typedef struct  {
         DECL(GetComputerNameExA);
         DECL(GetTickCount);
         DECL(CloseHandle);
+
+        DECL(LocalAlloc);
+        DECL(LocalFree);
+        DECL(LocalReAlloc);
     } Win32;
 
     struct _NTAPIS {
@@ -23,7 +27,11 @@ typedef struct  {
         DECL(NtQueryInformationToken);
         DECL(RtlGetVersionNumbers);
         DECL(RtlRandomEx);
-        DECL()
     } ntapi;
 
 }Hollow;
+
+extern Hollow* hollow;
+
+
+void HollowMain();

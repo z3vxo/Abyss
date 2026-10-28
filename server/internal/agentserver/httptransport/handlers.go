@@ -3,6 +3,7 @@ package httptransport
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 
 	"github.com/z3vxo/Abyss/server/internal/parser"
 )
@@ -25,10 +26,13 @@ func (srv *AgentServerInfo) HandleRegister(r *bytes.Reader) error {
 
 	clientInfo, err := parser.ParseRegister(r)
 	if err != nil {
+		fmt.Println("failed Parsing")
 		return err
 	}
 
 	if err := srv.DB.InsertAgent(clientInfo); err != nil {
+		fmt.Println("failed inserting to dv")
+
 		return err
 	}
 
@@ -56,6 +60,8 @@ func (srv *AgentServerInfo) HandleRegister(r *bytes.Reader) error {
 	}
 
 	if err := srv.WS.Broadcast(msg); err != nil {
+		fmt.Println(err)
+
 		return err
 	}
 
@@ -66,6 +72,8 @@ func (srv *AgentServerInfo) HandleOutput(r *bytes.Reader) error {
 
 	_, err := parser.ParseOutput(r)
 	if err != nil {
+		fmt.Println(err)
+
 		return err
 	}
 

@@ -25,6 +25,8 @@ func (srv *AgentServerInfo) HandlePost(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		fmt.Println("failed reading body")
+
 		http.Error(w, "", http.StatusNotFound)
 		return
 	}
@@ -39,6 +41,8 @@ func (srv *AgentServerInfo) HandlePost(w http.ResponseWriter, r *http.Request) {
 	switch cmdType {
 	case CMD_TYPE_REGISTER:
 		if err := srv.HandleRegister(reader); err != nil {
+		fmt.Println("failed registering")
+
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}

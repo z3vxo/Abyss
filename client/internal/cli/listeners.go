@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"strconv"
 	"strings"
 
@@ -116,6 +117,15 @@ func (c *CLI) findListener(ref string) (client.ListenerInfo, bool) {
 	return client.ListenerInfo{}, false
 }
 
+func isWildcardBind(bind string) bool {
+	if bind == "" {
+		return true
+	}
+
+	ip := net.ParseIP(strings.Trim(bind, "[]"))
+	return ip != nil && ip.IsUnspecified()
+}
+
 func (c *CLI) NewListener(args []string) error {
 	fs := pflag.NewFlagSet("listeners new", pflag.ContinueOnError)
 	fs.SetOutput(io.Discard)
@@ -124,7 +134,7 @@ func (c *CLI) NewListener(args []string) error {
 	bind := fs.StringP("bind", "b", "127.0.0.1", "address to bind to")
 	port := fs.IntP("port", "p", 0, "port to listen on")
 	proto := fs.StringP("type", "t", "http", "protocol to use (http or https)")
-	host := fs.StringP("host", "h", "127.0.0.1", "hostname to use")
+	host := fs.StringP("host", "h", "", "hostname to use (defaults to the bind address)")
 	cert := fs.StringP("cert", "c", "", "base64 encoded certificate")
 	key := fs.StringP("key", "k", "", "base64 encoded key")
 	startNow := fs.Bool("start", false, "start the listener now")
@@ -151,6 +161,11 @@ func (c *CLI) NewListener(args []string) error {
 		return fmt.Errorf("unsupported listener type %q", *proto)
 	}
 
+	hostname := *host
+	if hostname == "" && !isWildcardBind(*bind) {
+		hostname = *bind
+	}
+
 	req := NewListenerReq{
 		Name:     *name,
 		Type:     *proto,
@@ -158,7 +173,7 @@ func (c *CLI) NewListener(args []string) error {
 		HttpInfo: HttpListenerInfo{
 			Bind:      *bind,
 			Port:      *port,
-			Hostname:  *host,
+			Hostname:  hostname,
 			HttpPaths: []string{"/test"},
 			TlsCert:   *cert,
 			TlsKey:    *key,

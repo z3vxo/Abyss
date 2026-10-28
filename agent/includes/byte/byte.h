@@ -1,5 +1,5 @@
 #pragma once
-#include <Windows.h>
+#include <windows.h>
 
 #define BASE_WRITER_SIZE 256
 
@@ -13,6 +13,8 @@ private:
 	SIZE_T ReadIndex;
 	SIZE_T ReadBufSize;
 
+	BOOL EnsureBuf(SIZE_T Needed);
+
 public:
 	/*BOOL NewReader(PBYTE buf, SIZE_T bufSize);
 	INT32 Read4();
@@ -20,11 +22,10 @@ public:
 
 	BOOL NewWriter();
 	BOOL Write4(INT32 val);
-    BOOL WriteBytes(PBYTE Data, INT32 len);
+	BOOL WriteBytes(PBYTE Data, INT32 len);
 	BOOL DeleteWriter();
 	PBYTE WriterPointer();
 	INT32 WriterSize();
-
 };
 
 extern Packager* packager;

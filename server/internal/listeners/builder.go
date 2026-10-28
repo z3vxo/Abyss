@@ -59,17 +59,13 @@ func BuildServer(info shared.HttpListenerInfo, tlsCfg *tls.Config, agent AgentHa
 	if agent == nil {
 		return nil, fmt.Errorf("agent handler is required")
 	}
-	if info.Hostname == "" {
-		return nil, fmt.Errorf("listener hostname is required")
-	}
-
 	paths, err := normalizePaths(info.HttpPaths)
 	if err != nil {
 		return nil, err
 	}
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		if !hostMatches(r.Host, info.Hostname) {
+		if info.Hostname != "" && !hostMatches(r.Host, info.Hostname) {
 			http.NotFound(w, r)
 			return
 		}

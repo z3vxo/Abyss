@@ -2,8 +2,10 @@
 
 
 
-void main() {
+int main() {
 	HollowMain();
 
-	
+	return 0;
+
+
 }

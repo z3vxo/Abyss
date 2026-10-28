@@ -1,3 +1,5 @@
+#pragma once
+#include <windows.h>
 #include <winhttp.h>
 
 
@@ -22,12 +24,13 @@ typedef struct {
 } WINHTTP;
 
 class NetMgr {
-    WINHTTP *httpApis;
+    WINHTTP* httpApis;
+    HMODULE WinHttp;
 
 
-    public:
-        void Init();
-        BOOL DoPost();
+public:
+    BOOL Init();
+    BOOL DoPost(PBYTE data, SIZE_T len);
 
 
 };

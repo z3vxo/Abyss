@@ -79,8 +79,10 @@ BOOL HollowInit() {
 	}
 
 	g_NetMgr = (NetMgr*)hollow->Win32.LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, sizeof(NetMgr));
-	packager = (Packager*)hollow->Win32.LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, sizeof(Packager));
-	if (!g_NetMgr || !packager)
+	inPackager = (Packager*)hollow->Win32.LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, sizeof(Packager));
+	hollow->config = (Config*)hollow->Win32.LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, sizeof(Config));
+
+	if (!g_NetMgr || !packager || !hollow->config)
 		return FALSE;
 
 	if (!g_NetMgr->Init())

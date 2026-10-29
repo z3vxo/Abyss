@@ -27,11 +27,19 @@ class NetMgr {
     WINHTTP* httpApis;
     HMODULE WinHttp;
 
+    PBYTE  recvBuf;
+    SIZE_T recvCap;
+    SIZE_T recvLen;
+
+    BOOL EnsureRecv(SIZE_T needed);
+
 
 public:
     BOOL Init();
     BOOL DoPost(PBYTE data, SIZE_T len);
 
+    PBYTE  RecvBuf()  { return this->recvBuf; }
+    SIZE_T RecvSize() { return this->recvLen; }
 
 };
 

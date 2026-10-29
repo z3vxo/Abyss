@@ -16,16 +16,17 @@ private:
 	BOOL EnsureBuf(SIZE_T Needed);
 
 public:
-	/*BOOL NewReader(PBYTE buf, SIZE_T bufSize);
-	INT32 Read4();
-	PBYTE ReadBytes(INT32 len);*/
+	BOOL NewParser(PBYTE data, INT32 size);
+	INT32 Parse4();
+	BOOL ParseBytes(void* out, INT32 len);
 
-	BOOL NewWriter();
-	BOOL Write4(INT32 val);
-	BOOL WriteBytes(PBYTE Data, INT32 len);
-	BOOL DeleteWriter();
-	PBYTE WriterPointer();
-	INT32 WriterSize();
+	BOOL NewPacker();
+	BOOL Pack4(INT32 val);
+	BOOL PackBytes(PBYTE Data, INT32 len);
+	BOOL DeletePacker();
+	PBYTE PackerPointer();
+	INT32 PackerSize();
+	void ResetPacker();
 };
 
 extern Packager* packager;

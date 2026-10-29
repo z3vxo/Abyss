@@ -26,7 +26,7 @@ namespace api {
 	}
 
 
-	
+
 
 	FARPROC GetProcAddressInternal(HMODULE dll, DWORD Hash, INT depth) {
 		if (depth > 6)

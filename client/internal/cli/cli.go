@@ -48,6 +48,8 @@ func New(configPath string, debug bool) (*CLI, error) {
 		"mv":        c.HandleMv,
 		"use":       c.UseAgent,
 		"whoami":    c.HandleWhoami,
+		"cat":       c.HandleCat,
+		"cd":       c.HandleCd,
 	}
 
 	return c, nil

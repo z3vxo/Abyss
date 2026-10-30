@@ -47,3 +47,9 @@ func MinMajorBuildToString(minor, major, build int32) string {
 		return fmt.Sprintf("Windows NT %d.%d (Build %d)", major, minor, build)
 	}
 }
+
+var (
+	SuccessCodeToString = map[int32]string{
+		6: "Successfully moved files!",
+	}
+)

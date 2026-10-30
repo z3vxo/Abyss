@@ -78,6 +78,11 @@ typedef struct {
         DECL(LocalReAlloc);
         DECL(GetProcAddress);
         DECL(MoveFileA);
+        DECL(GetLastError);
+        DECL(CreateFileA);
+        DECL(ReadFile);
+        DECL(SetCurrentDirectoryA);
+        DECL(GetCurrentDirectoryA);
     } Win32;
 
     struct _NTAPIS {

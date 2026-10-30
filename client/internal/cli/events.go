@@ -16,7 +16,10 @@ func (c *CLI) handleEvents() {
 			if err := event.Decode(&body); err != nil {
 				continue
 			}
-			c.term.Printf("[*] Task %d output from agent %d (%d bytes):\n%s\n", body.TaskID, body.AgentID, body.TotalPostSize, body.Output)
+			c.term.Infof("Agent called back, sent %d bytes\n", body.TotalSize)
+			for _, out := range body.Output {
+				c.term.Infof("Output for %d\n\n%s\n", out.TaskID, out.Output)
+			}
 		}
 	}
 }

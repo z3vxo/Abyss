@@ -14,7 +14,7 @@ type Reader struct {
 	err error
 }
 
-func (r *Reader) Read4() int32 {
+func (r *Reader) Unpack4() int32 {
 	if r.err != nil {
 		return 0
 	}
@@ -23,12 +23,16 @@ func (r *Reader) Read4() int32 {
 	return val
 }
 
-func (r *Reader) ReadString(len int32) string {
+func (r *Reader) UnpackBytes(n int32) string {
 	if r.err != nil {
 		return ""
 	}
+	if n < 0 || int64(n) > int64(r.r.Len()) {
+		r.err = fmt.Errorf("invalid length %d (remaining %d)", n, r.r.Len())
+		return ""
+	}
 
-	buf := make([]byte, len)
+	buf := make([]byte, n)
 	_, r.err = io.ReadFull(r.r, buf)
 	return string(buf)
 }
@@ -57,25 +61,24 @@ func ParseRegister(r *bytes.Reader) (shared.ClientRegister, error) {
 	rd := &Reader{r: r}
 
 	client := shared.ClientRegister{}
-	client.AgentId = rd.Read4()
-	len := rd.Read4()
-	client.Username = rd.ReadString(len)
-	len = rd.Read4()
-	client.Hostname = rd.ReadString(len)
-	len = rd.Read4()
-	client.Domain = rd.ReadString(len)
-	len = rd.Read4()
-	client.ProcPath = rd.ReadString(len)
-	client.IsAdmin = rd.Read4()
-	client.Arch = rd.Read4()
-	client.Pid = rd.Read4()
-	client.Tid = rd.Read4()
-	client.PPid = rd.Read4()
-	minor := rd.Read4()
-	major := rd.Read4()
-	build := rd.Read4()
+	client.AgentId = rd.Unpack4()
+	len := rd.Unpack4()
+	client.Username = rd.UnpackBytes(len)
+	len = rd.Unpack4()
+	client.Hostname = rd.UnpackBytes(len)
+	len = rd.Unpack4()
+	client.Domain = rd.UnpackBytes(len)
+	len = rd.Unpack4()
+	client.ProcPath = rd.UnpackBytes(len)
+	client.IsAdmin = rd.Unpack4()
+	client.Arch = rd.Unpack4()
+	client.Pid = rd.Unpack4()
+	client.Tid = rd.Unpack4()
+	client.PPid = rd.Unpack4()
+	minor := rd.Unpack4()
+	major := rd.Unpack4()
+	build := rd.Unpack4()
 	client.WinVer = MinMajorBuildToString(minor, major, build)
-	client.AgentName = "test-gen-soon-after-test"
 
 	if rd.err != nil {
 		return shared.ClientRegister{}, rd.err
@@ -86,9 +89,10 @@ func ParseRegister(r *bytes.Reader) (shared.ClientRegister, error) {
 }
 
 type OutputInfo struct {
-	Total   int32
-	AgentId int32
-	Data    []Output
+	Total      int32
+	OutputSize int32
+	AgentId    int32
+	Data       []Output
 }
 
 type Output struct {
@@ -96,89 +100,103 @@ type Output struct {
 	OutputData string
 }
 
-/*
- 	[AgentId] 4 bytes
-  	[Total]   4 Bytes
-   	for each task [
-    	[TaskId] 	  	  4 Bytes
-     	[Output-Type] 	  4 Bytes // 0xaa == raw(e.g ps or cmd output), 0xcc == needs parsing(e.g ls output)
-      	[per output data] N bytes
-    ]
-
- *
-*/
-
 var (
-	OUTPUT_RAW        = int32(0xaa)
-	OUTPUT_NEED_PARSE = int32(0xcc)
+	OUTPUT_RAW        int32 = 4
+	OUTPUT_NEED_PARSE int32 = 3
+	TASK_FAILED       int32 = 5
 )
 
-type Handler func(r *Reader) error
+type Handler func(r *Reader, out *Output) error
 
 var TypeToHandler = map[int32]Handler{
-	0xbf: ParseLs,
+	0xac: ParseWhoami,
 }
 
-func ParseLs(rd *Reader) error {
-	return nil
+func ParseWhoami(rd *Reader, out *Output) error {
+	n := rd.Unpack4()
+	if rd.err != nil {
+		return rd.err
+	}
+	out.OutputData = rd.UnpackBytes(n)
+	return rd.err
 }
+
+/*	[AgentID]     4 Bytes
+	[Total Tasks] 4 Bytes
+	for each task {
+		[TaskId]   4 Bytes
+		[OutputType] 4 Bytes  3 = Structured output(e.g ls), 4 = raw output(e.g cat); 5 = task failed, >5 succes but no output, lookup code to string in map
+		if structured output:
+			[PARSE_NAME] 4 Bytes; e.g PARSE_LS, PARSE_WHOAMI etc
+		else if output raw:
+			[OUTPUT LEN] 4 Bytes
+			[Output Data] N Bytes
+		per command output ...
+
+	}
+*/
 
 func ParseOutput(r *bytes.Reader) (*OutputInfo, error) {
-
 	rd := &Reader{r: r}
-	info := &OutputInfo{
-		AgentId: rd.Read4(),
-		Total:   rd.Read4(),
-	}
+	agentID := rd.Unpack4()
+	total := rd.Unpack4()
 	if rd.err != nil {
 		return nil, rd.err
 	}
-	if info.Total < 0 || int64(info.Total) > int64(r.Len()/8) {
-		return nil, fmt.Errorf("invalid output count %d", info.Total)
+	if total < 0 || int64(total) > int64(r.Len()/8) {
+		return nil, fmt.Errorf("invalid output count %d (remaining %d)", total, r.Len())
 	}
 
-	info.Data = make([]Output, 0, info.Total)
-	for range info.Total {
+	output := make([]Output, 0, total)
+	for i := int32(0); i < total; i++ {
 		var o Output
-		o.TaskId = rd.Read4()
-		outputType := rd.Read4()
+		o.TaskId = rd.Unpack4()
+		outputType := rd.Unpack4()
 		if rd.err != nil {
 			return nil, rd.err
 		}
 
 		switch outputType {
-		case OUTPUT_RAW:
-			n := rd.Read4()
-			if rd.err != nil {
-				return nil, rd.err
-			}
-			if n < 0 || int64(n) > int64(r.Len()) {
-				return nil, fmt.Errorf("invalid output length %d (remaining %d)", n, r.Len())
-			}
-			o.OutputData = rd.ReadString(n)
-
 		case OUTPUT_NEED_PARSE:
-			parserType := rd.Read4()
+			parseName := rd.Unpack4()
 			if rd.err != nil {
 				return nil, rd.err
 			}
-			parser, ok := TypeToHandler[parserType]
+			handler, ok := TypeToHandler[parseName]
 			if !ok {
-				return nil, fmt.Errorf("unknown output parser %#x", parserType)
+				return nil, fmt.Errorf("unknown output parser %#x", parseName)
 			}
-			if err := parser(rd); err != nil {
-				return nil, fmt.Errorf("parse output %#x: %w", parserType, err)
+			if err := handler(rd, &o); err != nil {
+				return nil, fmt.Errorf("parse output %#x: %w", parseName, err)
 			}
+
+		case OUTPUT_RAW:
+			n := rd.Unpack4()
+			if rd.err != nil {
+				return nil, rd.err
+			}
+			o.OutputData = rd.UnpackBytes(n)
+
+		case TASK_FAILED:
+			errCode := rd.Unpack4()
+			if rd.err != nil {
+				return nil, rd.err
+			}
+			o.OutputData = fmt.Sprintf("task failed (error %d)", errCode)
 
 		default:
-			return nil, fmt.Errorf("unknown output type %#x", outputType)
+			msg, ok := SuccessCodeToString[outputType]
+			if !ok {
+				return nil, fmt.Errorf("unknown output type %#x", outputType)
+			}
+			o.OutputData = msg
 		}
 
 		if rd.err != nil {
 			return nil, rd.err
 		}
-		info.Data = append(info.Data, o)
+		output = append(output, o)
 	}
 
-	return info, nil
+	return &OutputInfo{Total: int32(len(output)), AgentId: agentID, Data: output}, nil
 }

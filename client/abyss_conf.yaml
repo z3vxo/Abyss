@@ -8,3 +8,19 @@ connection:
 logging:
    level: "info" # logging level
    logfile: "./logs/abyss.log" # file to log too
+
+defaults:
+   listener: http-main
+
+listeners:
+   http-main:
+      type: http
+      bind: 0.0.0.0
+      port: 8081
+      hostname: ""              # required if bind is wildcard/loopback
+      paths:
+         - "/test"
+      response_headers: []
+      tls_cert: ""              # base64, both empty => self-signed for https
+      tls_key: ""
+      start_now: true

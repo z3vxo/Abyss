@@ -12,6 +12,17 @@
 // server holds success code -> string mappings
 #define MV_SUCCESS  6
 
+
+enum TaskCodes : INT32 {
+	PAD,
+	TASK_WHOAMI,
+	TASK_CAT,
+	TASK_MV,
+	TASK_CD,
+};
+
 BOOL Dispatch();
 void do_whoami();
 void do_mv();
+void do_cat();
+void do_cd();

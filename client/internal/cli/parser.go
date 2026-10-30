@@ -27,7 +27,7 @@ func (c *CLI) HandleAgents(args []string) error {
 
 func (c *CLI) HandleListeners(args []string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("must provide a subcommand: new, start, stop, delete")
+		return fmt.Errorf("must provide a subcommand: new, list, start, stop, delete, profiles")
 	}
 
 	switch args[0] {
@@ -35,6 +35,8 @@ func (c *CLI) HandleListeners(args []string) error {
 		return c.ListListener(args[1:])
 	case "new":
 		return c.NewListener(args[1:])
+	case "profiles":
+		return c.ListProfiles(args[1:])
 	case "start":
 		return c.StartListener(args[1:])
 	case "stop":

@@ -1,7 +1,7 @@
 #pragma once
 #include <windows.h>
 
-#define BASE_WRITER_SIZE 256
+#define BASE_WRITER_SIZE (8 * 1024)
 
 class Packager {
 private:

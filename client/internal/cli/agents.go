@@ -46,6 +46,7 @@ func (c *CLI) UseAgent(args []string) error {
 	}
 
 	c.AgentInUse = int(agent.AgentId)
+	c.term.SetPrompt(fmt.Sprintf("Abyss(%s) $> ", agent.AgentName))
 	c.term.Infof("Using agent %s (%d)", agent.AgentName, agent.AgentId)
 
 	return nil

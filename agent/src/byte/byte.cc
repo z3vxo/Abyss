@@ -50,10 +50,12 @@ BOOL Packager::EnsureBuf(SIZE_T Needed) {
 		NewSize *= 2;
 	} while (NewSize < Needed);
 
-	HLOCAL NewBuf = hollow->Win32.LocalReAlloc(this->WriteBuf, NewSize, LMEM_FIXED | LMEM_ZEROINIT);
+	PBYTE NewBuf = (PBYTE)hollow->Win32.LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, NewSize);
 	if (!NewBuf) { return FALSE; }
+	utils::mem::memcpy(NewBuf, this->WriteBuf, this->WriteIndex);
+	hollow->Win32.LocalFree(this->WriteBuf);
 
-	this->WriteBuf = (PBYTE)NewBuf;
+	this->WriteBuf = NewBuf;
 	this->WriteBufSize = NewSize;
 	return TRUE;
 }

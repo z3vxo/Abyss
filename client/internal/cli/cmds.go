@@ -5,6 +5,58 @@ import (
 	"fmt"
 )
 
+func (c *CLI) HandleCat(args []string) error {
+	if !c.IsUsingAgent() {
+		return nil
+	}
+	if len(args) != 1 {
+		return fmt.Errorf("usage: cat <filename>")
+	}
+
+
+	req := NewTaskReq{
+		AgentId: c.AgentInUse,
+		Command: "cat",
+		Args: []Arg{
+			{Type: "string", Arg: args[0]},
+		},
+	}
+	id, err := c.api.NewTask(context.Background(), req)
+	if err != nil {
+		return err
+	}
+
+	c.term.Printf("[*] Task Issued: %d\n", id)
+	return nil
+}
+
+func (c *CLI) HandleCd(args []string) error {
+	if !c.IsUsingAgent() {
+		return nil
+	}
+	if len(args) != 1 {
+		return fmt.Errorf("usage: cd <dir>")
+	}
+
+
+	req := NewTaskReq{
+		AgentId: c.AgentInUse,
+		Command: "cd",
+		Args: []Arg{
+			{Type: "string", Arg: args[0]},
+		},
+	}
+	id, err := c.api.NewTask(context.Background(), req)
+	if err != nil {
+		return err
+	}
+
+	c.term.Printf("[*] Task Issued: %d\n", id)
+	return nil
+
+
+}
+
 func (c *CLI) HandleWhoami(args []string) error {
 	if !c.IsUsingAgent() {
 		return nil

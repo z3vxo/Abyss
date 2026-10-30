@@ -31,11 +31,15 @@ type NewAgent struct {
 	IsAdmin   string `json:"is_admin"`
 }
 
+type AgentOutput struct {
+	TaskID int32  `json:"task_id"`
+	Output string `json:"output"`
+}
+
 type TaskOutput struct {
-	AgentID       int32  `json:"agent_id"`
-	TaskID        int32  `json:"task_id"`
-	TotalPostSize int32  `json:"total_post_size"`
-	Output        string `json:"output"`
+	AgentID   int32         `json:"agent_id"`
+	TotalSize int32         `json:"total_size"`
+	Output    []AgentOutput `json:"output"`
 }
 
 type Handler func(Event)

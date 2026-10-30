@@ -62,3 +62,14 @@ type ClientRegister struct {
 	PPid      int32
 	WinVer    string
 }
+
+type Task struct {
+	TaskId      int32 `json:"task_id"`
+	CommandCode int32 `json:"command_code"`
+	Args        []Arg `json:"args"`
+}
+
+type AgentTasks struct {
+	Total int    `json:"total"`
+	Tasks []Task `json:"tasks"`
+}

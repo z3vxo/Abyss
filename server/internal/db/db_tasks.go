@@ -25,6 +25,19 @@ var CommandToCodeMap = map[string]int{
 	"whoami": 0x1,
 	"cat":    0x2,
 	"mv":     0x3,
+	"cd":     0x4,
+}
+
+func (db *DB) UpdateTaskStatus(id int32, value string) error {
+	q := `UPDATE tasks SET Status = ? WHERE TaskID = ?`
+	_, err := db.conn.Exec(q, value, id)
+	return err
+}
+
+func (db *DB) CompleteTask(id int32, output string) error {
+	q := `UPDATE tasks SET Status = ?, Output = ?, CompletedAt = ? WHERE TaskID = ?`
+	_, err := db.conn.Exec(q, "done", output, time.Now().Unix(), id)
+	return err
 }
 
 func (db *DB) ListTasks(id int32) (*TasksResp, error) {
@@ -90,4 +103,34 @@ func (db *DB) DeleteTask(id int32) error {
 	q := `DELETE FROM tasks WHERE TaskID = ?`
 	_, err := db.conn.Exec(q, id)
 	return err
+}
+
+func (db *DB) GetTasks(agentID int32) (shared.AgentTasks, error) {
+	q := `SELECT TaskID, Args, CommandCode FROM tasks WHERE AgentID = ? AND Status = ? LIMIT 3`
+	rows, err := db.conn.Query(q, agentID, "queued")
+	if err != nil {
+		return shared.AgentTasks{}, err
+	}
+	defer rows.Close()
+
+	tasks := make([]shared.Task, 0)
+	for rows.Next() {
+		var t shared.Task
+		var rawArgs []byte
+		if err := rows.Scan(&t.TaskId, &rawArgs, &t.CommandCode); err != nil {
+			return shared.AgentTasks{}, err
+		}
+
+		if err := json.Unmarshal(rawArgs, &t.Args); err != nil {
+			return shared.AgentTasks{}, fmt.Errorf("unmarshal task %d args: %w", t.TaskId, err)
+		}
+
+		tasks = append(tasks, t)
+	}
+
+	if err := rows.Err(); err != nil {
+		return shared.AgentTasks{}, err
+	}
+
+	return shared.AgentTasks{Total: len(tasks), Tasks: tasks}, nil
 }

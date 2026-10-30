@@ -3,12 +3,10 @@ package cli
 import (
 	"context"
 	"fmt"
-	"io"
 	"net"
 	"strconv"
 	"strings"
 
-	"github.com/spf13/pflag"
 	"github.com/z3vxo/Abyss/client/internal/client"
 	"github.com/z3vxo/Abyss/client/internal/render"
 )
@@ -127,56 +125,55 @@ func isWildcardBind(bind string) bool {
 }
 
 func (c *CLI) NewListener(args []string) error {
-	fs := pflag.NewFlagSet("listeners new", pflag.ContinueOnError)
-	fs.SetOutput(io.Discard)
+	if len(args) > 2 {
+		return fmt.Errorf("usage: listeners new [profile] [name]")
+	}
 
-	name := fs.StringP("name", "n", "", "listener name")
-	bind := fs.StringP("bind", "b", "127.0.0.1", "address to bind to")
-	port := fs.IntP("port", "p", 0, "port to listen on")
-	proto := fs.StringP("type", "t", "http", "protocol to use (http or https)")
-	host := fs.StringP("host", "h", "", "hostname to use (defaults to the bind address)")
-	cert := fs.StringP("cert", "c", "", "base64 encoded certificate")
-	key := fs.StringP("key", "k", "", "base64 encoded key")
-	startNow := fs.Bool("start", false, "start the listener now")
+	profileName := c.Cfg.Defaults.Listener
+	name := ""
+	switch len(args) {
+	case 1:
+		profileName = args[0]
+	case 2:
+		profileName, name = args[0], args[1]
+	}
 
-	if err := fs.Parse(args); err != nil {
+	if profileName == "" {
+		return fmt.Errorf("no listener profile provided and no default configured")
+	}
+
+	profile, err := c.Cfg.Listener(profileName)
+	if err != nil {
 		return err
 	}
-	if fs.NArg() > 0 {
-		return fmt.Errorf("unexpected argument %q", fs.Arg(0))
+
+	if name == "" {
+		name = profileName
 	}
-	if *name == "" {
-		return fmt.Errorf("listener name is required")
-	}
-	if _, err := strconv.Atoi(*name); err == nil {
+	if _, err := strconv.Atoi(name); err == nil {
 		return fmt.Errorf("listener name cannot be numeric")
 	}
-	if strings.HasPrefix(*name, "#") {
+	if strings.HasPrefix(name, "#") {
 		return fmt.Errorf("listener name cannot start with '#'")
 	}
-	if *port == 0 {
-		return fmt.Errorf("port is required")
-	}
-	if *proto != "http" && *proto != "https" {
-		return fmt.Errorf("unsupported listener type %q", *proto)
-	}
 
-	hostname := *host
-	if hostname == "" && !isWildcardBind(*bind) {
-		hostname = *bind
+	hostname := profile.Hostname
+	if hostname == "" && !isWildcardBind(profile.Bind) {
+		hostname = profile.Bind
 	}
 
 	req := NewListenerReq{
-		Name:     *name,
-		Type:     *proto,
-		StartNow: *startNow,
+		Name:     name,
+		Type:     profile.Type,
+		StartNow: profile.StartNow,
 		HttpInfo: HttpListenerInfo{
-			Bind:      *bind,
-			Port:      *port,
-			Hostname:  hostname,
-			HttpPaths: []string{"/test"},
-			TlsCert:   *cert,
-			TlsKey:    *key,
+			Bind:                profile.Bind,
+			Port:                profile.Port,
+			Hostname:            hostname,
+			HttpPaths:           profile.Paths,
+			HttpResponseHeaders: profile.ResponseHeaders,
+			TlsCert:             profile.TLSCert,
+			TlsKey:              profile.TLSKey,
 		},
 	}
 
@@ -185,10 +182,41 @@ func (c *CLI) NewListener(args []string) error {
 		return err
 	}
 
-	if *startNow {
-		c.term.Infof("Created and started listener: %s", id)
+	if profile.StartNow {
+		c.term.Infof("Created and started listener %q from profile %q: %s", name, profileName, id)
 	} else {
-		c.term.Infof("Created listener: %s", id)
+		c.term.Infof("Created listener %q from profile %q: %s", name, profileName, id)
+	}
+
+	return nil
+}
+
+func (c *CLI) ListProfiles(args []string) error {
+	if len(args) > 0 {
+		return fmt.Errorf("listeners profiles takes no arguments")
+	}
+
+	names := c.Cfg.ListenerNames()
+	if len(names) == 0 {
+		c.term.Printf("No listener profiles.\n")
+		return nil
+	}
+
+	for _, name := range names {
+		profile, err := c.Cfg.Listener(name)
+		if err != nil {
+			c.term.Printf("%s  invalid: %v\n", name, err)
+			continue
+		}
+
+		defaultMark := ""
+		if name == c.Cfg.Defaults.Listener {
+			defaultMark = " (default)"
+		}
+
+		c.term.Printf("%s%s  %s  %s:%d  paths=%s  start_now=%t\n",
+			name, defaultMark, profile.Type, profile.Bind, profile.Port,
+			strings.Join(profile.Paths, ","), profile.StartNow)
 	}
 
 	return nil

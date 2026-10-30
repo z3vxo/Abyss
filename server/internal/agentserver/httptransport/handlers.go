@@ -2,6 +2,7 @@ package httptransport
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 
@@ -30,7 +31,7 @@ func (srv *AgentServerInfo) HandleRegister(r *bytes.Reader) error {
 		return err
 	}
 
-	if err := srv.DB.InsertAgent(clientInfo); err != nil {
+	if err := srv.DB.InsertAgent(&clientInfo); err != nil {
 		fmt.Println("failed inserting to dv")
 
 		return err
@@ -68,14 +69,73 @@ func (srv *AgentServerInfo) HandleRegister(r *bytes.Reader) error {
 	return nil
 }
 
-func (srv *AgentServerInfo) HandleOutput(r *bytes.Reader) error {
+type OutputEntry struct {
+	TaskId int32  `json:"task_id"`
+	Data   string `json:"output"`
+}
 
-	_, err := parser.ParseOutput(r)
+type AgentOutputBody struct {
+	AgentId   int32         `json:"agent_id"`
+	TotalSize int32         `json:"total_size"`
+	Output    []OutputEntry `json:"output"`
+}
+
+func (srv *AgentServerInfo) HandleOutput(r *bytes.Reader, size int32) error {
+	outputData, err := parser.ParseOutput(r)
 	if err != nil {
 		fmt.Println(err)
+		return err
+	}
 
+	out := make([]OutputEntry, 0, len(outputData.Data))
+	for _, entry := range outputData.Data {
+		if err := srv.DB.CompleteTask(entry.TaskId, entry.OutputData); err != nil {
+			fmt.Println(err)
+			return err
+		}
+		out = append(out, OutputEntry{
+			TaskId: entry.TaskId,
+			Data:   entry.OutputData,
+		})
+	}
+
+	bodyJSON, err := json.Marshal(AgentOutputBody{
+		AgentId:   outputData.AgentId,
+		TotalSize: size,
+		Output:    out,
+	})
+	if err != nil {
+		return err
+	}
+
+	msg := &WebsockMsg{
+		Event: "task-output",
+		Body:  bodyJSON,
+	}
+
+	if err := srv.WS.Broadcast(msg); err != nil {
+		fmt.Println(err)
 		return err
 	}
 
 	return nil
+}
+
+func (srv *AgentServerInfo) HandleGetTasks(r *bytes.Reader) ([]byte, error) {
+	var agentID int32
+	if err := binary.Read(r, binary.LittleEndian, &agentID); err != nil {
+		fmt.Println("Failed reading agentID")
+		return nil, err
+	}
+
+	tasks, err := srv.DB.GetTasks(agentID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = srv.DB.UpdateAgentSeen(agentID); err != nil {
+		return nil, err
+	}
+
+	return parser.PackageTasks(tasks)
 }

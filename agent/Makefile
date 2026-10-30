@@ -10,7 +10,8 @@ SRCS := main.cc \
         src/init/config.cc \
         src/byte/byte.cc \
         src/core/core.cc \
-        src/net/net.cc
+        src/net/net.cc   \
+        src/core/tasker.cc
 
 .PHONY: all debug prod clean
 

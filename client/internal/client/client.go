@@ -307,8 +307,8 @@ type Agent struct {
 	PID       int    `json:"pid"`
 	TID       int    `json:"tid"`
 	PPID      int    `json:"ppid"`
-	Arch      int    `json:"arch"`
-	IsAdmin   int    `json:"is_admin"`
+	Arch      string `json:"arch"`
+	IsAdmin   string `json:"is_admin"`
 	LastSeen  int    `json:"last_seen"`
 	CreatedAt int    `json:"created_at"`
 }

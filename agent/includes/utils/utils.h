@@ -1,5 +1,6 @@
 #pragma once
 #include <windows.h>
+#include "../../includes/core/core.h"
 
 
 
@@ -32,6 +33,18 @@ namespace utils {
 			while (n--) *d++ = (unsigned char)val;
 			return dst;
 		}
+
+
+
+		template <typename T>
+		T* Alloc(SIZE_T size = 1) {
+			return (T*)hollow->Win32.LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, size);
+		}
+
+		inline void free(HLOCAL ptr) {
+			if (ptr)
+				hollow->Win32.LocalFree(ptr);
+		}
 	}
 
 
@@ -43,6 +56,15 @@ namespace utils {
 			SIZE_T n = 0;
 			while (*s++) n++;
 			return n;
+		}
+
+		inline int strcmp(const char* s1, const char* s2) {
+			while (*s1 && (*s1 == *s2)) {
+				s1++;
+				s2++;
+			}
+
+			return (unsigned char)*s1 - (unsigned char)*s2;
 		}
 
 		inline int strncmp(const char* s1, const char* s2, SIZE_T n)

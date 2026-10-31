@@ -1,7 +1,7 @@
 #pragma once
 #include <windows.h>
 
-#define BASE_WRITER_SIZE (8 * 1024)
+#define BASE_WRITER_SIZE 256
 
 class Packager {
 private:
@@ -22,6 +22,7 @@ public:
 
 	BOOL NewPacker();
 	BOOL Pack4(INT32 val);
+	BOOL Pack8(ULONGLONG val);
 	BOOL PackBytes(PBYTE Data, INT32 len);
 	BOOL DeletePacker();
 	PBYTE PackerPointer();

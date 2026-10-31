@@ -6,7 +6,7 @@
 
 
 /*
-	core.cc -> Checkin() -> this just POSTs packager->PackerPointer + size -> Net manager checks if data, reads into packager->NewParser() -> core.cc calls Dispatch() 
+	core.cc -> Checkin() -> this just POSTs packager->PackerPointer + size -> Net manager checks if data, reads into packager->NewParser() -> core.cc calls Dispatch()
 */
 
 
@@ -72,6 +72,17 @@ BOOL Packager::NewPacker() {
 }
 
 BOOL Packager::Pack4(INT32 val) {
+	if (!this->WriteBuf) { return FALSE; }
+
+	if (!this->EnsureBuf(this->WriteIndex + sizeof(val))) { return FALSE; }
+
+	utils::mem::memcpy(this->WriteBuf + this->WriteIndex, &val, sizeof(val));
+
+	this->WriteIndex += sizeof(val);
+	return TRUE;
+}
+
+BOOL Packager::Pack8(ULONGLONG val) {
 	if (!this->WriteBuf) { return FALSE; }
 
 	if (!this->EnsureBuf(this->WriteIndex + sizeof(val))) { return FALSE; }

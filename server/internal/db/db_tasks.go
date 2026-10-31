@@ -26,6 +26,7 @@ var CommandToCodeMap = map[string]int{
 	"cat":    0x2,
 	"mv":     0x3,
 	"cd":     0x4,
+	"ls":     0x5,
 }
 
 func (db *DB) UpdateTaskStatus(id int32, value string) error {

@@ -45,7 +45,7 @@ void HollowMain() {
 			break;
 		}
 
-		Sleep(5000);
+		Sleep(2000);
 
 	}
 

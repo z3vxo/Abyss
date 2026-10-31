@@ -49,7 +49,8 @@ func New(configPath string, debug bool) (*CLI, error) {
 		"use":       c.UseAgent,
 		"whoami":    c.HandleWhoami,
 		"cat":       c.HandleCat,
-		"cd":       c.HandleCd,
+		"cd":        c.HandleCd,
+		"ls":        c.HandleLs,
 	}
 
 	return c, nil

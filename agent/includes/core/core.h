@@ -2,7 +2,7 @@
 #include "windows.h"
 #include <stdio.h>
 #include "nt.h"
-
+#include <sddl.h>
 #define DECL(x) decltype(x) * x
 
 
@@ -83,6 +83,14 @@ typedef struct {
         DECL(ReadFile);
         DECL(SetCurrentDirectoryA);
         DECL(GetCurrentDirectoryA);
+        DECL(ConvertSidToStringSidA);
+        DECL(LookupAccountSidA);
+        DECL(LookupPrivilegeNameA);
+        DECL(GetFullPathNameA);
+        DECL(GetFileAttributesA);
+        DECL(FindFirstFileA);
+        DECL(FindNextFileA);
+       
     } Win32;
 
     struct _NTAPIS {
@@ -90,6 +98,7 @@ typedef struct {
         DECL(NtQueryInformationToken);
         DECL(RtlGetNtVersionNumbers);
         DECL(RtlRandomEx);
+        DECL(RtlNtStatusToDosError);
         DECL(NtQueryInformationProcess);
     } ntapi;
 

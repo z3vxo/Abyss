@@ -37,6 +37,19 @@ func (r *Reader) UnpackBytes(n int32) string {
 	return string(buf)
 }
 
+func (r *Reader) Unpack8() uint64 {
+	if r.err != nil {
+		return 0
+	}
+	var val uint64
+	r.err = binary.Read(r.r, binary.LittleEndian, &val)
+	return val
+}
+
+func (r *Reader) UnpackString() string {
+	return r.UnpackBytes(r.Unpack4())
+}
+
 /*
    [AgentID]        4 bytes
    [Username Len]   4 Bytes
@@ -62,14 +75,10 @@ func ParseRegister(r *bytes.Reader) (shared.ClientRegister, error) {
 
 	client := shared.ClientRegister{}
 	client.AgentId = rd.Unpack4()
-	len := rd.Unpack4()
-	client.Username = rd.UnpackBytes(len)
-	len = rd.Unpack4()
-	client.Hostname = rd.UnpackBytes(len)
-	len = rd.Unpack4()
-	client.Domain = rd.UnpackBytes(len)
-	len = rd.Unpack4()
-	client.ProcPath = rd.UnpackBytes(len)
+	client.Username = rd.UnpackString()
+	client.Hostname = rd.UnpackString()
+	client.Domain = rd.UnpackString()
+	client.ProcPath = rd.UnpackString()
 	client.IsAdmin = rd.Unpack4()
 	client.Arch = rd.Unpack4()
 	client.Pid = rd.Unpack4()
@@ -106,19 +115,13 @@ var (
 	TASK_FAILED       int32 = 5
 )
 
+const endSig int32 = -559038737 // 0xDEADBEEF as a signed int32
+
 type Handler func(r *Reader, out *Output) error
 
 var TypeToHandler = map[int32]Handler{
-	0xac: ParseWhoami,
-}
-
-func ParseWhoami(rd *Reader, out *Output) error {
-	n := rd.Unpack4()
-	if rd.err != nil {
-		return rd.err
-	}
-	out.OutputData = rd.UnpackBytes(n)
-	return rd.err
+	parseWhoami: ParseWhoami,
+	parseLs:     ParseLs,
 }
 
 /*	[AgentID]     4 Bytes

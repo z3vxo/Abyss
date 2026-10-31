@@ -129,9 +129,9 @@ typedef enum _PROCESSINFOCLASS
 
 
 #define InitializeObjectAttributes( p , n , a, r, s) { \
-	(p)->Length = sizeof(OBJECT_ATTRIBUTES);           \
-	(p)->RootDirectory = r;                            \
-	(p)->Attributes    = a;                            \
+    (p)->Length = sizeof(OBJECT_ATTRIBUTES);           \
+    (p)->RootDirectory = r;                            \
+    (p)->Attributes    = a;                            \
     (p)->ObjectName    = n;                            \
     (p)->SecurityDescriptor = s;                       \
     (p)->SecurityQualityOfService = NULL;              \
@@ -166,6 +166,7 @@ extern "C" {
     NTSYSAPI NTSTATUS NTAPI RtlGetVersion(PRTL_OSVERSIONINFOW);
     NTSYSAPI NTSTATUS NTAPI RtlGetNtVersionNumbers(DWORD* major, DWORD* minor, DWORD* build);
     NTSYSAPI NTSTATUS NTAPI RtlRandomEx(PULONG seed);
+    NTSYSAPI ULONG    NTAPI RtlNtStatusToDosError(NTSTATUS Status);
     NTSYSAPI NTSTATUS NTAPI NtOpenProcess(
         PHANDLE ProcessHandle,
         ACCESS_MASK DesiredAccess,

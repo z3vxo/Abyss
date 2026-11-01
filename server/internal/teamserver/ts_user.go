@@ -3,6 +3,7 @@ package teamserver
 import (
 	"encoding/json"
 	"net/http"
+	"fmt"
 )
 
 type LoginReq struct {
@@ -27,7 +28,7 @@ func (ts *TS) HandleAuth(w http.ResponseWriter, r *http.Request) {
 		ts.Error(w, http.StatusInternalServerError, "failed verifying creds")
 		return
 	}
-
+	fmt.Println("[*] User Logged in!")
 	ts.Success(w, http.StatusOK, Tokens)
 }
 

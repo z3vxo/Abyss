@@ -136,14 +136,23 @@
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuSettings">
+   <widget class="QMenu" name="menuListeners">
     <property name="title">
-     <string>Settings</string>
+     <string>Listeners</string>
     </property>
+    <addaction name="actionCreateListener"/>
+    <addaction name="actionListListeners"/>
    </widget>
-   <addaction name="menuSettings"/>
+   <addaction name="menuListeners"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionCreateListener">
+   <property name="text"><string>Create</string></property>
+  </action>
+  <action name="actionListListeners">
+   <property name="enabled"><bool>false</bool></property>
+   <property name="text"><string>List</string></property>
+  </action>
  </widget>
  <resources/>
  <connections/>

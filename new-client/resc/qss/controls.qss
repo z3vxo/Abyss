@@ -1,0 +1,114 @@
+/* Abyss — controls styles. Loaded after core.qss; see Application::initialise(). */
+
+QLineEdit {
+    background-color: #12151e;
+    color: #e3e7ee;
+    border: 1px solid #292f3d;
+    border-radius: 6px;
+    padding: 9px 12px;
+    selection-background-color: #253248;
+    selection-color: #ffffff;
+}
+
+QLineEdit:hover {
+    border-color: #3e485b;
+}
+
+QLineEdit:focus {
+    border: 1px solid #7d9dcc;
+}
+
+QLineEdit:disabled {
+    background-color: #090b10;
+    color: #687386;
+    border-color: #1d222d;
+}
+
+QPushButton {
+    background-color: #181d29;
+    color: #e3e7ee;
+    border: 1px solid #3e485b;
+    border-radius: 6px;
+    padding: 9px 18px;
+    font-weight: 600;
+}
+
+QPushButton:hover {
+    background-color: #1e2431;
+    border-color: #7d9dcc;
+}
+
+QPushButton:pressed {
+    background-color: #090b10;
+    color: #e3e7ee;
+    border: 1px solid #7d9dcc;
+}
+
+QPushButton:focus {
+    border: 1px solid #7d9dcc;
+}
+
+QPushButton:disabled {
+    background-color: #1d222d;
+    color: #687386;
+    border-color: #292f3d;
+}
+
+QLabel#listenerTitle {
+    color: #e3e7ee;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+QFrame#tlsSeparator {
+    color: #292f3d;
+}
+
+QPushButton#addPathButton,
+QPushButton#addCallbackButton,
+QPushButton#removePathButton,
+QPushButton#removeCallbackButton {
+    min-width: 26px;
+    max-width: 26px;
+    padding: 3px;
+    font-size: 16px;
+}
+
+QComboBox#protocolCombo {
+    background-color: #12151e;
+    color: #e3e7ee;
+    border: 1px solid #292f3d;
+    border-radius: 6px;
+    padding: 7px 10px;
+}
+
+QComboBox#protocolCombo:hover,
+QComboBox#protocolCombo:focus {
+    border-color: #7d9dcc;
+}
+
+QCheckBox#startNowCheckBox,
+QCheckBox#selfSignedCheckBox {
+    background: transparent;
+    spacing: 8px;
+}
+
+QCheckBox#startNowCheckBox::indicator,
+QCheckBox#selfSignedCheckBox::indicator {
+    width: 14px;
+    height: 14px;
+    border: 1px solid #71809b;
+    border-radius: 3px;
+    background-color: #181d29;
+}
+
+QCheckBox#startNowCheckBox::indicator:checked,
+QCheckBox#selfSignedCheckBox::indicator:checked {
+    background-color: #7d9dcc;
+    border-color: #9dbce5;
+}
+
+QCheckBox#startNowCheckBox::indicator:hover,
+QCheckBox#selfSignedCheckBox::indicator:hover {
+    border-color: #a7b9d5;
+}

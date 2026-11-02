@@ -1,0 +1,48 @@
+/* Abyss — tabs styles. Loaded after core.qss; see Application::initialise(). */
+
+QTabBar {
+    background-color: #181d29;
+    qproperty-drawBase: 0;
+}
+
+QTabWidget {
+    background-color: #181d29;
+}
+
+QTabWidget::pane {
+    background-color: #12151e;
+    border: none;
+    top: 0px;
+}
+
+QTabBar::tab {
+    background: #181d29;
+    color: #939daf;
+    margin-left: 0px;
+    margin-top: 0px;
+    padding: 10px 16px;
+    border: 1px solid transparent;
+    border-bottom: 2px solid transparent;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+}
+
+QTabBar::tab:hover {
+    color: #e3e7ee;
+    background: #1e2431;
+}
+
+QTabBar::tab:selected {
+    background: #12151e;
+    color: #e3e7ee;
+    border: 1px solid transparent;
+    border-bottom: 2px solid #939daf;
+}
+
+QTabBar::close-button {
+    subcontrol-position: right;
+}
+
+QTabBar::close-button:hover {
+    background: #1e2431;
+}

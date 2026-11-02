@@ -1,8 +1,11 @@
 package teamserver
 
 import (
+	"crypto/tls"
 	"fmt"
+	"net"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/z3vxo/Abyss/server/internal/agentserver/httptransport"
@@ -41,6 +44,10 @@ func New(cfg *config.Config) (*TS, error) {
 }
 
 func (ts *TS) Run() error {
+	cert, err := teamServerCertificate(ts.Cfg.TeamServer)
+	if err != nil {
+		return fmt.Errorf("configure teamserver TLS: %w", err)
+	}
 	r := chi.NewRouter()
 
 	r.Route("/rest", func(r chi.Router) {
@@ -75,7 +82,11 @@ func (ts *TS) Run() error {
 		fmt.Printf("[!] Failed starting listeners: %v\n", err)
 	}
 
-	listen := fmt.Sprintf("%s:%d", ts.Cfg.TeamServer.BindAddr, ts.Cfg.TeamServer.Port)
-	fmt.Printf("[*] Listening on %s\n", listen)
-	return http.ListenAndServe(listen, r)
+	listen := net.JoinHostPort(ts.Cfg.TeamServer.BindAddr, strconv.Itoa(ts.Cfg.TeamServer.Port))
+	fmt.Printf("[*] Listening on https://%s\n", listen)
+	server := &http.Server{Addr: listen, Handler: r, TLSConfig: &tls.Config{
+		MinVersion:   tls.VersionTLS12,
+		Certificates: []tls.Certificate{cert},
+	}}
+	return server.ListenAndServeTLS("", "")
 }

@@ -1,0 +1,28 @@
+/* Abyss — shell styles. Loaded after core.qss; see Application::initialise(). */
+
+QPlainTextEdit {
+    background-color: #12151e;
+    color: #e3e7ee;
+    border: none;
+    padding: 12px;
+    selection-background-color: #253248;
+    selection-color: #ffffff;
+    font-family: "JetBrains Mono", "DejaVu Sans Mono", "Noto Sans Mono", monospace;
+    font-size: 13px;
+}
+
+QTabWidget#shellTabs QStackedWidget,
+QTabWidget#shellTabs QStackedWidget > QWidget {
+    background-color: #12151e;
+}
+
+QTabWidget#shellTabs QLineEdit {
+    background-color: #181d29;
+    border-color: #292f3d;
+    font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+    font-size: 13px;
+}
+
+QTabWidget#shellTabs QLineEdit:focus {
+    border-color: #7d9dcc;
+}

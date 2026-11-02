@@ -3,6 +3,8 @@
 #include <QApplication>
 #include <QString>
 #include "../net/net.h"
+#include "../net/ws.h"
+#include "../input/input.h"
 
 
 
@@ -24,14 +26,19 @@ private:
     void showLogin();
     void handleLogin(const QString& username, const QString& password, const QString& domain, quint16 port);
     void showCore();
+    void showCreateListener();
+    void refreshAgents();
 
     void openAgentTab(int row, int column);
     void closeShellTab(int index);
     int  addShellTab(int agentId, const QString& title);
     int  findShellTab(int agentId) const;
+    void shellAppend(int agentId, ShellMessageType type, const QString& message);
     void logToConsole(const QString& text);
 
     NetworkService m_net;
+    WsClient m_ws;
+    Input m_input;
 
     QTabWidget* m_shellTabs    = nullptr;
     QTableWidget* m_usersTable = nullptr;

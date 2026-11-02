@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CreateListenerDialog</class>
+ <widget class="QDialog" name="CreateListenerDialog">
+  <property name="geometry"><rect><x>0</x><y>0</y><width>520</width><height>720</height></rect></property>
+  <property name="windowTitle"><string>Create listener</string></property>
+  <layout class="QVBoxLayout" name="dialogLayout">
+   <property name="spacing"><number>16</number></property>
+   <property name="leftMargin"><number>20</number></property>
+   <property name="topMargin"><number>20</number></property>
+   <property name="rightMargin"><number>20</number></property>
+   <property name="bottomMargin"><number>20</number></property>
+   <item><widget class="QLabel" name="listenerTitle"><property name="text"><string>Create listener</string></property></widget></item>
+   <item>
+    <layout class="QGridLayout" name="listenerFields">
+     <property name="horizontalSpacing"><number>12</number></property>
+     <property name="verticalSpacing"><number>8</number></property>
+     <item row="0" column="0"><widget class="QLabel" name="nameLabel"><property name="text"><string>Name</string></property><property name="buddy"><cstring>nameEdit</cstring></property></widget></item>
+     <item row="0" column="1"><widget class="QLabel" name="bindLabel"><property name="text"><string>Bind</string></property><property name="buddy"><cstring>bindEdit</cstring></property></widget></item>
+     <item row="0" column="2"><widget class="QLabel" name="portLabel"><property name="text"><string>Port</string></property><property name="buddy"><cstring>portEdit</cstring></property></widget></item>
+     <item row="1" column="0"><widget class="QLineEdit" name="nameEdit"><property name="placeholderText"><string>Listener name</string></property></widget></item>
+     <item row="1" column="1"><widget class="QLineEdit" name="bindEdit"><property name="placeholderText"><string>0.0.0.0</string></property></widget></item>
+     <item row="1" column="2"><widget class="QLineEdit" name="portEdit"><property name="maximumWidth"><number>100</number></property><property name="placeholderText"><string>8081</string></property><property name="maxLength"><number>5</number></property></widget></item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="protocolLayout">
+     <item><widget class="QLabel" name="protocolLabel"><property name="text"><string>Protocol</string></property><property name="buddy"><cstring>protocolCombo</cstring></property></widget></item>
+     <item>
+      <widget class="QComboBox" name="protocolCombo">
+       <property name="minimumWidth"><number>120</number></property>
+       <item><property name="text"><string>http</string></property></item>
+       <item><property name="text"><string>https</string></property></item>
+      </widget>
+     </item>
+     <item><widget class="QCheckBox" name="selfSignedCheckBox"><property name="visible"><bool>false</bool></property><property name="checked"><bool>false</bool></property><property name="text"><string>Self signed?</string></property></widget></item>
+     <item><spacer name="protocolSpacer"><property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property></spacer></item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="pathsHeadingLayout">
+     <item><widget class="QLabel" name="pathsLabel"><property name="text"><string>Paths</string></property><property name="buddy"><cstring>pathEdit</cstring></property></widget></item>
+     <item><spacer name="pathsHeadingSpacer"><property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property></spacer></item>
+     <item><widget class="QPushButton" name="removePathButton"><property name="enabled"><bool>false</bool></property><property name="text"><string>−</string></property><property name="toolTip"><string>Remove last path</string></property><property name="accessibleName"><string>Remove last path</string></property><property name="autoDefault"><bool>false</bool></property></widget></item>
+     <item><widget class="QPushButton" name="addPathButton"><property name="text"><string>+</string></property><property name="toolTip"><string>Add path</string></property><property name="accessibleName"><string>Add path</string></property><property name="autoDefault"><bool>false</bool></property></widget></item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QScrollArea" name="pathsScrollArea">
+     <property name="minimumSize"><size><width>0</width><height>96</height></size></property>
+     <property name="frameShape"><enum>QFrame::Shape::NoFrame</enum></property>
+     <property name="widgetResizable"><bool>true</bool></property>
+     <widget class="QWidget" name="pathsContainer">
+      <layout class="QVBoxLayout" name="pathsLayout">
+       <property name="sizeConstraint"><enum>QLayout::SizeConstraint::SetMinimumSize</enum></property>
+       <property name="spacing"><number>8</number></property>
+       <property name="leftMargin"><number>0</number></property>
+       <property name="topMargin"><number>0</number></property>
+       <property name="rightMargin"><number>0</number></property>
+       <property name="bottomMargin"><number>0</number></property>
+       <item><widget class="QLineEdit" name="pathEdit"><property name="minimumHeight"><number>38</number></property><property name="placeholderText"><string>/path</string></property></widget></item>
+       <item><spacer name="pathsSpacer"><property name="orientation"><enum>Qt::Orientation::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="callbacksHeadingLayout">
+     <item><widget class="QLabel" name="callbacksLabel"><property name="text"><string>Callbacks</string></property><property name="buddy"><cstring>callbackEdit</cstring></property></widget></item>
+     <item><spacer name="callbacksHeadingSpacer"><property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property></spacer></item>
+     <item><widget class="QPushButton" name="removeCallbackButton"><property name="enabled"><bool>false</bool></property><property name="text"><string>−</string></property><property name="toolTip"><string>Remove last callback</string></property><property name="accessibleName"><string>Remove last callback</string></property><property name="autoDefault"><bool>false</bool></property></widget></item>
+     <item><widget class="QPushButton" name="addCallbackButton"><property name="text"><string>+</string></property><property name="toolTip"><string>Add callback</string></property><property name="accessibleName"><string>Add callback</string></property><property name="autoDefault"><bool>false</bool></property></widget></item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QScrollArea" name="callbacksScrollArea">
+     <property name="minimumSize"><size><width>0</width><height>96</height></size></property>
+     <property name="frameShape"><enum>QFrame::Shape::NoFrame</enum></property>
+     <property name="widgetResizable"><bool>true</bool></property>
+     <widget class="QWidget" name="callbacksContainer">
+      <layout class="QVBoxLayout" name="callbacksLayout">
+       <property name="sizeConstraint"><enum>QLayout::SizeConstraint::SetMinimumSize</enum></property>
+       <property name="spacing"><number>8</number></property>
+       <property name="leftMargin"><number>0</number></property>
+       <property name="topMargin"><number>0</number></property>
+       <property name="rightMargin"><number>0</number></property>
+       <property name="bottomMargin"><number>0</number></property>
+       <item><widget class="QLineEdit" name="callbackEdit"><property name="minimumHeight"><number>38</number></property><property name="placeholderText"><string>example.com:443</string></property></widget></item>
+       <item><spacer name="callbacksSpacer"><property name="orientation"><enum>Qt::Orientation::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item><widget class="QCheckBox" name="startNowCheckBox"><property name="text"><string>Start now</string></property></widget></item>
+   <item><widget class="QFrame" name="tlsSeparator"><property name="frameShape"><enum>QFrame::Shape::HLine</enum></property><property name="frameShadow"><enum>QFrame::Shadow::Plain</enum></property></widget></item>
+   <item>
+    <widget class="QWidget" name="tlsSection">
+     <property name="enabled"><bool>false</bool></property>
+     <layout class="QGridLayout" name="tlsLayout">
+      <property name="spacing"><number>8</number></property>
+      <property name="leftMargin"><number>0</number></property>
+      <property name="topMargin"><number>0</number></property>
+      <property name="rightMargin"><number>0</number></property>
+      <property name="bottomMargin"><number>0</number></property>
+      <item row="0" column="0"><widget class="QLabel" name="tlsKeyLabel"><property name="text"><string>TLS key</string></property><property name="buddy"><cstring>tlsKeyEdit</cstring></property></widget></item>
+      <item row="0" column="1"><widget class="QLineEdit" name="tlsKeyEdit"><property name="placeholderText"><string>Choose a key file</string></property></widget></item>
+      <item row="0" column="2"><widget class="QPushButton" name="browseTlsKeyButton"><property name="text"><string>Browse…</string></property><property name="autoDefault"><bool>false</bool></property></widget></item>
+      <item row="1" column="0"><widget class="QLabel" name="tlsCertLabel"><property name="text"><string>TLS cert</string></property><property name="buddy"><cstring>tlsCertEdit</cstring></property></widget></item>
+      <item row="1" column="1"><widget class="QLineEdit" name="tlsCertEdit"><property name="placeholderText"><string>Choose a certificate file</string></property></widget></item>
+      <item row="1" column="2"><widget class="QPushButton" name="browseTlsCertButton"><property name="text"><string>Browse…</string></property><property name="autoDefault"><bool>false</bool></property></widget></item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="buttonsLayout">
+     <item><spacer name="buttonSpacer"><property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property></spacer></item>
+     <item><widget class="QPushButton" name="closeButton"><property name="text"><string>Close</string></property><property name="autoDefault"><bool>false</bool></property></widget></item>
+     <item><widget class="QPushButton" name="createButton"><property name="enabled"><bool>false</bool></property><property name="text"><string>Create</string></property></widget></item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

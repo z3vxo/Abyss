@@ -171,3 +171,11 @@ then on success calls `WsClient::connectWithToken(...)` and switches to core.
 - [ ] Implement `WsClient` -> `GET /ws/connect?token=<access>` and connect.
 - [ ] Wire `Application::handleLogin` -> `AuthApi::login` -> `WsClient`.
 - [ ] Handle `401` -> re-login/refresh.
+
+## Listeners
+
+- [ ] Wire the create-listener form to POST a new listener to the server.
+- [ ] Update the server to accept and fulfill the new listener structure.
+- [ ] On client startup, request `/rest/listeners/list` to collect the current listeners.
+      The server currently exposes `/rest/listener/list` (singular); align the route and client.
+- [ ] Start work on the listeners list tab.

@@ -1,0 +1,16 @@
+/* Abyss — overlays styles. Loaded after core.qss; see Application::initialise(). */
+
+QMessageBox {
+    background-color: #090b10;
+}
+
+QMessageBox QLabel {
+    color: #e3e7ee;
+}
+
+QToolTip {
+    background-color: #181d29;
+    color: #e3e7ee;
+    border: 1px solid #292f3d;
+    padding: 5px 8px;
+}

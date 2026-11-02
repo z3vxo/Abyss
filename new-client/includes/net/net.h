@@ -4,10 +4,15 @@
 #include <QUrl>
 #include <QString>
 #include <QJsonObject>
+#include <QJsonValue>
 #include <QNetworkAccessManager>
 #include <QVector>
 #include <cstdint>
 #include <functional>
+#include <qcontainerfwd.h>
+#include <qcoreapplication.h>
+#include <qjsonobject.h>
+#include <qobject.h>
 #include <qtmetamacros.h>
 #include <qurl.h>
 
@@ -46,15 +51,29 @@ struct ListClientsResponse {
 };
 
 
+struct Arg {
+    QString Type;
+    QJsonValue arg;
+};
+
+struct NewTaskReq {
+    int32_t AgentId;
+    QString command;
+    QVector<Arg> Args;
+};
+
 class NetworkService : public QObject {
     Q_OBJECT
 public:
     explicit NetworkService(QObject* parent = nullptr);
 
     void setEndpoint(const QString& domain, quint16 port);
+    QUrl baseUrl() const { return m_base; }
     void login(const QString& username, const QString& password,
                std::function<void(const ApiResult&, const LoginResponse&)> cb);
     void getAgents(std::function<void(const ApiResult&, const ListClientsResponse&)> cb);
+    void NewTask(int32_t agentId, const QString& cmdName, const QVector<Arg>& args,
+                 std::function<void(int, const QString&)> cb);
 
 private:
     void post(const QString& path, const QJsonObject& body,

@@ -1,0 +1,60 @@
+/* Abyss — login styles. Loaded after core.qss; see Application::initialise(). */
+
+QLabel#loginTitle {
+    color: #e3e7ee;
+    font-size: 22px;
+    font-weight: 700;
+    padding-bottom: 6px;
+}
+
+QFrame#profilesPanel {
+    background-color: #12151e;
+    border: 1px solid #292f3d;
+    border-radius: 8px;
+}
+
+QLabel#profilesTitle {
+    color: #e3e7ee;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+QLabel#profilesEmpty {
+    color: #939daf;
+}
+
+QListWidget#profilesList {
+    background-color: #12151e;
+    border: none;
+}
+
+QListWidget#profilesList::item {
+    border-bottom: 1px solid #292f3d;
+    padding: 12px 4px;
+}
+
+QPushButton#doneButton {
+    background-color: #7d9dcc;
+    color: #090b10;
+    border-color: #7d9dcc;
+}
+
+QPushButton#doneButton:hover {
+    background-color: #91add4;
+    border-color: #91add4;
+}
+
+QPushButton#doneButton:pressed {
+    background-color: #6c8dbb;
+    border-color: #6c8dbb;
+}
+
+QPushButton#doneButton:focus {
+    border: 1px solid #e3e7ee;
+}
+
+QPushButton#doneButton:disabled {
+    background-color: #1d222d;
+    color: #687386;
+    border-color: #292f3d;
+}

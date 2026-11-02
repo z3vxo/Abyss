@@ -1,0 +1,74 @@
+/* Abyss — chrome styles. Loaded after core.qss; see Application::initialise(). */
+
+QMenuBar {
+    background-color: #12151e;
+    color: #939daf;
+    border-bottom: 1px solid #292f3d;
+    padding: 4px 6px;
+}
+
+QMenuBar::item {
+    background: transparent;
+    color: #939daf;
+    padding: 6px 12px;
+}
+
+QMenuBar::item:selected {
+    background: #253248;
+    color: #e3e7ee;
+}
+
+QMenuBar::item:pressed {
+    background: #292f3d;
+}
+
+QMenu {
+    background-color: #181d29;
+    color: #e3e7ee;
+    border: 1px solid #292f3d;
+}
+
+QMenu::item {
+    padding: 6px 26px 6px 14px;
+}
+
+QMenu::item:selected {
+    background: #253248;
+    color: #ffffff;
+}
+
+QMenu::separator {
+    height: 1px;
+    background: #292f3d;
+    margin: 5px 8px;
+}
+
+QStatusBar {
+    background-color: #090b10;
+    color: #939daf;
+    border-top: 1px solid #292f3d;
+}
+
+QStatusBar::item {
+    border: none;
+}
+
+QSplitter::handle {
+    background-color: #090b10;
+}
+
+QSplitter::handle:vertical {
+    height: 10px;
+}
+
+QSplitter::handle:horizontal {
+    width: 10px;
+}
+
+QSplitter::handle:hover {
+    background-color: #1e2431;
+}
+
+QMenu::item:disabled {
+    color: #687386;
+}

@@ -28,6 +28,8 @@ signals:
 
 private:
     void onDoneClicked();
+    void loadProfiles();
+    void saveProfile();
     QWidget *m_window = nullptr;
     QLineEdit* m_username = nullptr;
     QLineEdit* m_password = nullptr;

@@ -6,9 +6,6 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QSslError>
-#include <qnetworkreply.h>
-#include <qnetworkrequest.h>
-#include <qurl.h>
 
 static ApiResult readResult(QNetworkReply* reply) {
 	ApiResult r;
@@ -24,7 +21,10 @@ static ApiResult readResult(QNetworkReply* reply) {
 	const auto doc = QJsonDocument::fromJson(data, &perr);
 	if (doc.isObject()) r.body = doc.object();
 	r.ok = r.status >= 200 && r.status < 300;
-	if (!r.ok) r.error = QString("HTTP %1").arg(r.status);
+	if (!r.ok) {
+		r.error = r.body.value("error").toString();
+		if (r.error.isEmpty()) r.error = QString("HTTP %1").arg(r.status);
+	}
 	return r;
 }
 
@@ -36,7 +36,7 @@ NetworkService::NetworkService(QObject* parent) : QObject(parent) {
 }
 
 void NetworkService::setEndpoint(const QString& domain, quint16 port) {
-	m_base = QUrl(QString("http://%1:%2").arg(domain).arg(port));
+	m_base = QUrl(QString("https://%1:%2").arg(domain).arg(port));
 }
 
 
@@ -88,6 +88,26 @@ void NetworkService::login(const QString& username, const QString& password,
 	});
 }
 
+
+void NetworkService::NewTask(int32_t agentId, const QString& cmdName, const QVector<Arg>& args,
+                             std::function<void(int, const QString&)> cb) {
+    QJsonArray array;
+    for(const auto& arg : args) {
+        QJsonObject obj;
+        obj["data_type"] = arg.Type;
+        obj["arg"]  = arg.arg;
+        array.append(obj);
+    }
+
+    QJsonObject json;
+    json["agent_id"] = agentId;
+    json["command"]  = cmdName;
+    json["args"]     = array;
+
+    this->post("/rest/tasks/new", json, [cb](const ApiResult& r) {
+        cb(r.ok ? 0 : -1, r.error);
+    });
+}
 
 void NetworkService::getAgents(std::function<void(const ApiResult&, const ListClientsResponse&)> cb) {
 	get("/rest/agents/list", [cb](const ApiResult& r) {

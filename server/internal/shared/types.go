@@ -51,6 +51,7 @@ type NewTaskReq struct {
 type ClientRegister struct {
 	AgentId   int32
 	AgentName string
+	LastSeen  int64
 	Username  string
 	Hostname  string
 	Domain    string

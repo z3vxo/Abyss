@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QUrl>
 #include <QString>
+#include <QStringList>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QNetworkAccessManager>
@@ -62,6 +63,17 @@ struct NewTaskReq {
     QVector<Arg> Args;
 };
 
+struct NewListenerRequest {
+    QString name;
+    QString type;
+    QString bind;
+    int port = 0;
+    QStringList paths;
+    QString tlsKey;
+    QString tlsCert;
+    bool startNow = false;
+};
+
 class NetworkService : public QObject {
     Q_OBJECT
 public:
@@ -74,6 +86,8 @@ public:
     void getAgents(std::function<void(const ApiResult&, const ListClientsResponse&)> cb);
     void NewTask(int32_t agentId, const QString& cmdName, const QVector<Arg>& args,
                  std::function<void(int, const QString&)> cb);
+    void newListener(const NewListenerRequest& request,
+                     std::function<void(const ApiResult&)> cb);
 
 private:
     void post(const QString& path, const QJsonObject& body,

@@ -4,8 +4,12 @@
 
 All backend traffic goes through a layered network stack. UI widgets never touch
 `QNetworkAccessManager` directly. One `QNetworkAccessManager` per app (it pools
-connections, caches, and handles cookies); never one per request. Add
-`Qt6::Network` to CMake.
+connections, caches, and handles cookies); never one per request.
+
+The sections below describe a proposed future split. The existing
+`NetworkService` already provides GET/POST, timeouts, bearer authentication,
+login, agent listing, task submission, and listener creation; `WsClient` is
+already connected after login.
 
 ## Auth flow
 
@@ -13,14 +17,14 @@ connections, caches, and handles cookies); never one per request. Add
 login
   -> POST /rest/auth/login
   -> server returns access + refresh token (JSON)
-  -> GET /ws/connect?token=<access_token>
+  -> GET /rest/ws/connect?token=<access_token>
   -> upgrade to WebSocket
 ```
 
 - `POST /rest/auth/login` body carries the credentials; response JSON contains
   `access` and `refresh` tokens.
 - The access token is then supplied as the `token` query parameter when opening
-  the WebSocket via `GET /ws/connect?token=<access_token>`.
+  the WebSocket via `GET /rest/ws/connect?token=<access_token>`.
 - On `401` from any REST call, emit `unauthorized()` and re-enter the login flow
   (or refresh using the refresh token).
 
@@ -33,7 +37,7 @@ includes/net/
     AuthApi.h           // typed endpoint groups
     CoreApi.h
     dto/LoginDto.h      // request/response structs + from/toJson
-    WsClient.h          // QWebSocket wrapper for /ws/connect
+    WsClient.h          // QWebSocket wrapper for /rest/ws/connect
 src/net/
     HttpClient.cc
     AuthApi.cc
@@ -126,7 +130,7 @@ struct LoginResponse { QString accessToken, refreshToken; static LoginResponse f
 
 ### 4. WsClient (WebSocket)
 
-Wraps `QWebSocket`. Opens `GET /ws/connect?token=<access_token>` (via
+Wraps `QWebSocket`. Opens `GET /rest/ws/connect?token=<access_token>` (via
 `QWebSocket::open(QUrl)`), reconnects with backoff, and re-emits messages.
 
 ```cpp
@@ -163,19 +167,63 @@ then on success calls `WsClient::connectWithToken(...)` and switches to core.
 
 ## TODO
 
-- [ ] Add `Qt6::Network` to `CMakeLists.txt` (`find_package` + link).
-- [ ] Implement `ApiResult.h` / `ApiError`.
-- [ ] Implement `HttpClient` (GET/POST, timeout, error mapping, bearer token).
-- [ ] Implement `AuthApi::login()` -> `POST /rest/auth/login`, parse access/refresh.
-- [ ] Add token storage (access + refresh).
-- [ ] Implement `WsClient` -> `GET /ws/connect?token=<access>` and connect.
-- [ ] Wire `Application::handleLogin` -> `AuthApi::login` -> `WsClient`.
-- [ ] Handle `401` -> re-login/refresh.
+- [ ] Split transport and endpoint logic into the proposed `HttpClient` and API
+      layers, and introduce structured network, HTTP, timeout, and parse errors.
+- [ ] Store and use the refresh token; handle `401` by refreshing or returning
+      to login. Coordinate WebSocket reconnection with refreshed credentials.
+- [ ] Fix the server authentication middleware to return immediately after an
+      invalid token, before invoking a protected handler.
+- [ ] Add WebSocket reconnection with backoff and recover missed events.
+- [ ] Add retries for idempotent requests and consider an in-flight request cap.
+- [ ] Review callback lifetimes and response parsing across the network layer.
+- [ ] Test login, token expiry, reconnection, and network failure paths.
 
 ## Listeners
 
-- [ ] Wire the create-listener form to POST a new listener to the server.
-- [ ] Update the server to accept and fulfill the new listener structure.
-- [ ] On client startup, request `/rest/listeners/list` to collect the current listeners.
-      The server currently exposes `/rest/listener/list` (singular); align the route and client.
-- [ ] Start work on the listeners list tab.
+- [x] Wire the create-listener form to `POST /rest/listener/new`, including
+      HTTP/HTTPS, paths, optional TLS files, and start-now.
+- [ ] Test listener creation against the server, including self-signed and
+      supplied certificates, validation failures, and start failures.
+- [ ] Define callback address semantics and add server storage/API support.
+      The client currently requires callbacks but the server request has no
+      callback field, so the addresses are not sent or saved.
+- [ ] Add a listeners list tab and load it on startup with
+      `GET /rest/listener/list`; display and refresh listener status.
+- [ ] Add listener deletion with `DELETE /rest/listener/delete/{id}`.
+- [ ] Add listener start with `POST /rest/listener/start/{id}` and stop with
+      `PATCH /rest/listener/stop/{id}`; reflect success and errors in the list.
+- [ ] Handle partial creation when start-now fails: the server can save a
+      listener before returning an error. Reconcile the list before retrying.
+
+## Agent generation and listener profiles
+
+Listener profiles define the HTTP-level settings used when generating an agent.
+The intended flow is:
+
+1. Create a listener and define its paths, headers, and callback addresses.
+2. Save listener profiles locally so they can be selected for agent generation.
+3. Press **Generate agent** to open a generation dialog.
+4. Select a listener profile from a dropdown listing the available profiles.
+5. Choose agent settings such as sleep and jitter, then press **Generate**.
+6. Generate the agent using the selected listener profile and agent settings.
+
+- [ ] Define the listener profile format, including paths, HTTP headers, and
+      callback addresses, and implement local profile storage and retrieval.
+- [ ] Add the missing listener-profile fields to the listener UI and reconcile
+      locally stored profiles with listeners managed by the server.
+- [ ] Build the Generate agent dialog with a listener-profile dropdown and
+      agent settings, including sleep and jitter.
+- [ ] Implement and connect the agent generation workflow, including input
+      validation, result handling, and generated artifact delivery.
+
+## Agents and tasks
+
+- [x] Include the agent-table fields in `new-agent` and update the table without
+      fetching the full agent list for every event.
+- [ ] Test registration and task output end to end, including events arriving
+      during the initial agent-list request and output for closed tabs.
+
+## Files
+
+- [ ] Implement the server file upload, listing, and download handlers and add
+      client support when those workflows are ready.

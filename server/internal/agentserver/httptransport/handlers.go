@@ -15,6 +15,9 @@ type NewAgentWsBody struct {
 	Username  string `json:"username"`
 	Hostname  string `json:"hostname"`
 	Domain    string `json:"domain"`
+	ProcPath  string `json:"proc_path"`
+	Pid       int32  `json:"pid"`
+	LastSeen  int64  `json:"last_seen"`
 	IsAdmin   string `json:"is_admin"`
 }
 
@@ -50,6 +53,9 @@ func (srv *AgentServerInfo) HandleRegister(r *bytes.Reader) error {
 		Username:  clientInfo.Username,
 		Hostname:  clientInfo.Hostname,
 		Domain:    clientInfo.Domain,
+		ProcPath:  clientInfo.ProcPath,
+		Pid:       clientInfo.Pid,
+		LastSeen:  clientInfo.LastSeen,
 		IsAdmin:   isElev,
 	}
 

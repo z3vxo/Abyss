@@ -1,4 +1,5 @@
-#include "../../includes/net/net.h"
+#include "net/net.h"
+
 
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -6,6 +7,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QSslError>
+
 
 static ApiResult readResult(QNetworkReply* reply) {
 	ApiResult r;
@@ -143,4 +145,24 @@ void NetworkService::getAgents(std::function<void(const ApiResult&, const ListCl
 
 		cb(r, out);
 	});
+}
+
+
+
+void NetworkService::newListener(const NewListenerRequest& request,
+                                 std::function<void(const ApiResult&)> cb) {
+    const QJsonObject httpInfo{
+        {"bind_addr", request.bind},
+        {"port", request.port},
+        {"http_paths", QJsonArray::fromStringList(request.paths)},
+        {"tls_key", request.tlsKey},
+        {"tls_cert", request.tlsCert}
+    };
+    const QJsonObject body{
+        {"name", request.name},
+        {"listener_type", request.type},
+        {"http_listener_info", httpInfo},
+        {"start_now", request.startNow}
+    };
+    post("/rest/listener/new", body, std::move(cb));
 }

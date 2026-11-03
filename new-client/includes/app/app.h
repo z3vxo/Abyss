@@ -6,7 +6,18 @@
 #include "../net/ws.h"
 #include "../input/input.h"
 
-
+struct ListenerForm {
+    QString name;
+    QString bind;
+    QString port;
+    QString protocol;
+    QStringList paths;
+    QStringList callbacks;
+    bool selfSigned = false;
+    bool startNow = false;
+    QString tlsKeyPath;
+    QString tlsCertPath;
+};
 
 
 class LoginWindow;
@@ -15,6 +26,7 @@ class QLineEdit;
 class QPlainTextEdit;
 class QTableWidget;
 class QTabWidget;
+class QDialog;
 
 class Application : public QApplication {
     Q_OBJECT;
@@ -27,7 +39,9 @@ private:
     void handleLogin(const QString& username, const QString& password, const QString& domain, quint16 port);
     void showCore();
     void showCreateListener();
+    void CreateListener(ListenerForm form, QDialog* dialog);
     void refreshAgents();
+    void upsertAgent(const AgentInfo& agent);
 
     void openAgentTab(int row, int column);
     void closeShellTab(int index);
@@ -35,6 +49,7 @@ private:
     int  findShellTab(int agentId) const;
     void shellAppend(int agentId, ShellMessageType type, const QString& message);
     void logToConsole(const QString& text);
+
 
     NetworkService m_net;
     WsClient m_ws;

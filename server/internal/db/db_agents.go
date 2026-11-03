@@ -56,6 +56,7 @@ func (db *DB) InsertAgent(info *shared.ClientRegister) error {
 		}
 
 		info.AgentName = name
+		info.LastSeen = now
 		return nil
 	}
 

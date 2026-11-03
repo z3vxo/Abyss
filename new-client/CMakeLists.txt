@@ -12,6 +12,9 @@ qt_standard_project_setup()
 add_executable(abyss-client
 	main.cc
 	src/app/app.cc
+	src/app/agents.cc
+	src/app/listeners.cc
+	src/app/shell.cc
 	includes/app/app.h
 	src/windows/login.cc
 	includes/windows/login/login.h
